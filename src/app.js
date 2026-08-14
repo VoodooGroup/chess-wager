@@ -142,7 +142,10 @@ export function mount(root) {
             <p>Play chess. Winner takes the pot.</p>
           </div>
         </div>
-        <div class="wallet" id="wallet-box"></div>
+        <div class="wallet">
+          <div id="wallet-box"></div>
+          <div id="rk-root"></div>
+        </div>
       </header>
       <div id="main"></div>
       <button class="license-tab" data-act="license" type="button">License</button>
@@ -193,10 +196,6 @@ function bind(root) {
     try {
       state.err = '';
       if (act === 'connect') await doConnect();
-      else if (act === 'voodoo-wallet') {
-        window.open('https://voodootoken.com/', '_blank', 'noopener,noreferrer');
-      }
-      else if (act === 'add-tokens') await addTokensToWallet();
       else if (act === 'info') { state.showInfo = !state.showInfo; render(); }
       else if (act === 'close-info') { state.showInfo = false; render(); }
       else if (act === 'license') { state.showLicense = !state.showLicense; render(); }
@@ -235,34 +234,24 @@ function bind(root) {
   });
 }
 
-async function addTokensToWallet() {
-  const eth = getInjected();
-  if (!eth) throw new Error('Install Voodoo Wallet or MetaMask first.');
-  await ensurePulseChain(eth);
-  for (const tok of Object.values(TOKENS)) {
-    await eth.request({
-      method: 'wallet_watchAsset',
-      params: {
-        type: 'ERC20',
-        options: {
-          address: tok.address,
-          symbol: tok.symbol,
-          decimals: tok.decimals,
-          image: new URL(tok.icon, location.href).href
-        }
-      }
-    });
-  }
-  toast('MAGIC and POISON can now show in your wallet.');
-}
-
 async function doConnect() {
   const { signer, address } = await connectWallet();
+  await applyExternalWallet(signer, address);
+}
+
+export async function applyExternalWallet(signer, address) {
   state.signer = signer;
   state.account = address;
   await loadBalances();
   render();
   await refreshLobby();
+}
+
+export function clearExternalWallet() {
+  state.signer = null;
+  state.account = null;
+  state.balances = { MAGIC: 0n, POISON: 0n };
+  render();
 }
 
 async function loadBalances() {
@@ -1229,10 +1218,7 @@ function walletHtml() {
       <a class="btn ghost wallet-extra" href="https://voodootoken.com/" target="_blank" rel="noopener noreferrer">
         <img src="./voodoo-wallet.png" alt="" /> Voodoo Wallet
       </a>
-      <button class="btn ghost wallet-extra" data-act="add-tokens" type="button">Add tokens</button>
-      ${state.account
-        ? `<div class="pill addr">${shortAddr(state.account)}</div>`
-        : `<button class="btn" data-act="connect">Connect wallet</button>`}
+      ${state.account ? `<div class="pill addr">${shortAddr(state.account)}</div>` : ''}
     </div>
   `;
 }

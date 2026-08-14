@@ -9,11 +9,18 @@
     "preview": "vite preview --host"
   },
   "dependencies": {
+    "@rainbow-me/rainbowkit": "^2.2.11",
+    "@tanstack/react-query": "^5.101.4",
     "chess.js": "^1.1.0",
     "ethers": "^6.13.5",
-    "peerjs": "^1.5.4"
+    "peerjs": "^1.5.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "viem": "^2.55.15",
+    "wagmi": "^2.19.5"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^4.7.0",
     "vite": "^5.4.11"
   },
   "allowScripts": {
