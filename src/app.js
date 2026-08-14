@@ -867,7 +867,7 @@ async function submitSettle() {
   } catch (e) {
     const raw = String(e?.shortMessage || e?.message || e);
     if (/transfer|TRANSFER/i.test(raw)) {
-      throw new Error('Payout would fail. If this is POISON, the 1% tax can block the pot.');
+      throw new Error('Payout would fail. The token rejected the transfer.');
     }
     throw e;
   }
@@ -946,7 +946,7 @@ async function claimWinOnChain() {
   } catch (e) {
     const raw = String(e?.shortMessage || e?.message || e);
     if (/transfer|TRANSFER/i.test(raw)) {
-      throw new Error('Claim would fail on payout later. If this is POISON, tax can block the pot.');
+      throw new Error('Claim would fail later. The token rejected the transfer.');
     }
     throw e;
   }
@@ -988,7 +988,7 @@ async function finalizeOnChain() {
   } catch (e) {
     const raw = String(e?.shortMessage || e?.message || e);
     if (/transfer|TRANSFER/i.test(raw)) {
-      throw new Error('Collect would fail. If this is POISON, the 1% tax can block the pot.');
+      throw new Error('Collect would fail. The token rejected the transfer.');
     }
     throw e;
   }
@@ -1300,8 +1300,7 @@ function createPanel() {
         `).join('')}
       </div>
     </div>
-    ${state.tokenKey === 'POISON' ? `<p class="muted">POISON has a 1% tax. If the token does not exclude this game contract, Collect can fail. Prefer MAGIC unless tax is off for ChessWager.</p>` : ''}
-    <button class="btn big" data-act="create" ${state.busy ? 'disabled' : ''}>${state.busy ? 'Please wait…' : `Start game with ${tok.symbol}`}</button>
+    <button class="btn big" data-act="create"> ${state.busy ? 'disabled' : ''}>${state.busy ? 'Please wait…' : `Start game with ${tok.symbol}`}</button>
     <h2 style="margin-top:22px">Or join a game</h2>
     <div class="game-list">
       ${open.length === 0 ? `<p class="muted">No open games right now.</p>` : open.map(joinRow).join('')}
@@ -1624,7 +1623,6 @@ function infoHtml() {
         <h3>Tokens</h3>
         <ul>
           <li>Only official MAGIC and POISON. They are the same reward tokens, used here as a wager.</li>
-          <li><strong>Prefer MAGIC.</strong> POISON has a 1% tax. If ChessWager is not excluded from that tax, Collect can fail and the pot can stick.</li>
           <li>The wallet only approves this bet, not unlimited tokens.</li>
         </ul>
 
