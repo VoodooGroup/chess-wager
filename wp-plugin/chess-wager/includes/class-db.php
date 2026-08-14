@@ -79,13 +79,19 @@ class Chess_Wager_DB {
     public static function cleanup() {
         global $wpdb;
         $hours = Chess_Wager_Settings::keep_hours();
-        $cutoff = date('Y-m-d H:i:s', strtotime(current_time('mysql')) - ($hours * HOUR_IN_SECONDS));
+        $live_hours = max($hours, 14 * 24);
+        $now = strtotime(current_time('mysql'));
+        $cutoff = date('Y-m-d H:i:s', $now - ($hours * HOUR_IN_SECONDS));
+        $live_cut = date('Y-m-d H:i:s', $now - ($live_hours * HOUR_IN_SECONDS));
         $games = self::games_table();
         $events = self::events_table();
         $presence = self::presence_table();
 
         $old_ids = $wpdb->get_col($wpdb->prepare(
-            "SELECT game_id FROM {$games} WHERE updated_at < %s",
+            "SELECT game_id FROM {$games}
+             WHERE (status IN (1,2) AND updated_at < %s)
+                OR (status NOT IN (1,2) AND updated_at < %s)",
+            $live_cut,
             $cutoff
         ));
         $deleted_games = 0;
@@ -97,7 +103,9 @@ class Chess_Wager_DB {
         }
 
         $deleted_events = (int) $wpdb->query($wpdb->prepare(
-            "DELETE FROM {$events} WHERE created_at < %s",
+            "DELETE e FROM {$events} e
+             LEFT JOIN {$games} g ON g.game_id = e.game_id
+             WHERE g.game_id IS NULL AND e.created_at < %s",
             $cutoff
         ));
         $presence_cut = date('Y-m-d H:i:s', strtotime(current_time('mysql')) - (2 * HOUR_IN_SECONDS));

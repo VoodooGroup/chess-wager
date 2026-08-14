@@ -47,7 +47,7 @@ class Chess_Wager_Admin {
         echo '<p><code>https://chess.voodootoken.com</code><br><code>https://chess-wager.vercel.app</code></p>';
         echo '<textarea name="dapp_urls" rows="5" class="large-text code">' . esc_textarea(Chess_Wager_Settings::raw()) . '</textarea>';
         echo '<h2>Auto delete</h2>';
-        echo '<p>Moves are only a live backup. After this many hours with no activity, the plugin deletes that game so it does not fill the database. Tokens stay in the contract.</p>';
+        echo '<p>Moves are only a live backup. Finished or waiting games are deleted after this many hours with no activity. Active or claimed games are kept at least 14 days. Tokens stay in the contract.</p>';
         echo '<p><label>Delete after <input type="number" name="keep_hours" min="6" max="720" value="' . (int) Chess_Wager_Settings::keep_hours() . '" class="small-text" /> hours</label> (default 48)</p>';
         echo '<p>';
         echo '<button type="submit" name="chess_wager_save" class="button button-primary" value="1">Save settings</button> ';

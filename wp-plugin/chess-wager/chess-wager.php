@@ -3,7 +3,7 @@
  * Plugin Name: Chess Wager
  * Plugin URI: https://voodootoken.com
  * Description: Embeds the Chess Wager dApp and keeps a live relay of who is playing, so a lost internet connection does not wipe the match.
- * Version: 1.2.0
+ * Version: 1.3.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: Voodoo Token
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('CHESS_WAGER_VER', '1.2.0');
+define('CHESS_WAGER_VER', '1.3.0');
 define('CHESS_WAGER_PATH', plugin_dir_path(__FILE__));
 define('CHESS_WAGER_URL', plugin_dir_url(__FILE__));
 define('CHESS_WAGER_DB_VER', '1');

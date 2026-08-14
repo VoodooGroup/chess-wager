@@ -13,6 +13,9 @@ import { GameChannel } from './lib/p2p.js';
 import { relayOn, relayReset, relayPost, relayPull, relayRegister, relayPresence, relayGetPresence } from './lib/relay.js';
 import { fmtAmount, parseAmount, fmtClock } from './lib/format.js';
 import { pieceImg } from './lib/pieces.js';
+import { nowTs, syncChainTime } from './lib/chainTime.js';
+import { ensureSession, sessionReady, sessionAddress, loadSession } from './lib/session.js';
+import { assertMoveMatchesLib } from './lib/chesslib.js';
 
 const ZERO = ethers.ZeroAddress;
 const channel = new GameChannel();
@@ -42,6 +45,42 @@ const state = {
 let clockTimer = null;
 let relayTimer = null;
 let hushRender = false;
+let lobbyBusy = false;
+const seenMsgs = new Set();
+const sessionKeyCache = {};
+
+function msgKey(msg) {
+  if (!msg || !msg.type) return '';
+  if (msg.type === 'move') return `m:${msg.sequence}:${msg.mover}:${msg.from}:${msg.to}`;
+  if (msg.type === 'result') return `r:${msg.from}:${String(msg.sig || '').slice(0, 20)}`;
+  if (msg.type === 'hello') return `h:${msg.from}:${msg.states?.sequence || 0}:${(msg.fen || '').slice(-24)}`;
+  if (msg.type === 'peer-open') return 'peer-open';
+  return '';
+}
+
+async function signPlay(primaryType, value) {
+  const g = state.game;
+  if (g && (primaryType === 'GameState' || primaryType === 'SignedMove') && sessionReady(g.id)) {
+    return signTyped(loadSession(g.id).wallet, primaryType, value);
+  }
+  return signTyped(state.signer, primaryType, value);
+}
+
+async function signerAllowed(player, recovered) {
+  if (!player || !recovered) return false;
+  if (String(player).toLowerCase() === String(recovered).toLowerCase()) return true;
+  const cacheKey = `${state.game?.id}:${String(player).toLowerCase()}`;
+  if (sessionKeyCache[cacheKey] && sessionKeyCache[cacheKey] === String(recovered).toLowerCase()) return true;
+  try {
+    const key = await wagerRead().sessionKeyOf(state.game.id, player);
+    const exp = Number(await wagerRead().sessionExpiryOf(state.game.id, player));
+    if (String(key).toLowerCase() === String(recovered).toLowerCase() && exp > nowTs()) {
+      sessionKeyCache[cacheKey] = String(key).toLowerCase();
+      return true;
+    }
+  } catch { /* */ }
+  return false;
+}
 
 function publish(msg) {
   channel.send(msg);
@@ -62,7 +101,7 @@ function startRelay(gameId) {
       const evs = await relayPull(gameId);
       if (evs.length) {
         hushRender = true;
-        for (const ev of evs) onPeer(ev.payload || ev);
+        for (const ev of evs) await onPeer(ev.payload || ev);
         hushRender = false;
         if (state.signer && state.account && state.game.states.last) {
           const seq = Number(state.game.states.sequence || 0);
@@ -118,8 +157,10 @@ export function mount(root) {
   const eth = getInjected();
   eth?.on?.('accountsChanged', () => location.reload());
   eth?.on?.('chainChanged', () => location.reload());
-  channel.onMessage(onPeer);
+  channel.onMessage((msg) => { onPeer(msg); });
   startClocks();
+  syncChainTime();
+  setInterval(syncChainTime, 30000);
   window.addEventListener('online', () => {
     if (state.game?.id && state.account) {
       flushProofs();
@@ -155,6 +196,7 @@ function bind(root) {
       }
       else if (act === 'resign') await resign();
       else if (act === 'draw') await offerDraw();
+      else if (act === 'accept-draw') await acceptDraw();
       else if (act === 'collect') await submitSettle();
       else if (act === 'sign-result') await signCurrentResult();
       else if (act === 'claim-win') await claimWinOnChain();
@@ -193,15 +235,18 @@ async function loadBalances() {
 }
 
 async function refreshLobby() {
+  if (lobbyBusy) return;
+  lobbyBusy = true;
   try {
     const c = wagerRead();
     const next = Number(await c.nextGameId());
-    const start = Math.max(1, next - 30);
-    const items = [];
-    for (let id = next - 1; id >= start; id--) {
+    const start = Math.max(1, next - 12);
+    const ids = [];
+    for (let id = next - 1; id >= start; id--) ids.push(id);
+    const items = await Promise.all(ids.map(async (id) => {
       const g = await c.getGame(id);
-      items.push({ id, ...plainGame(g) });
-    }
+      return { id, ...plainGame(g) };
+    }));
     state.lobby = items;
     if (state.game) {
       const live = items.find((x) => String(x.id) === String(state.game.id));
@@ -215,6 +260,8 @@ async function refreshLobby() {
     render();
   } catch (e) {
     console.warn(e);
+  } finally {
+    lobbyBusy = false;
   }
 }
 
@@ -248,7 +295,7 @@ async function createGame() {
   const allow = await erc.allowance(state.account, CHESS_WAGER);
   if (allow < amount) {
     toast('Your wallet will ask: allow this game to use your tokens.');
-    await (await erc.approve(CHESS_WAGER, ethers.MaxUint256)).wait();
+    await (await erc.approve(CHESS_WAGER, amount)).wait();
   }
   toast('Confirm in your wallet to start the game.');
   const w = wagerWrite(state.signer);
@@ -279,7 +326,7 @@ async function acceptGame(id) {
   const allow = await erc.allowance(state.account, CHESS_WAGER);
   if (allow < g.wagerAmount) {
     toast('Your wallet will ask: allow this game to use your tokens.');
-    await (await erc.approve(CHESS_WAGER, ethers.MaxUint256)).wait();
+    await (await erc.approve(CHESS_WAGER, g.wagerAmount)).wait();
   }
   toast('Confirm in your wallet to join.');
   await (await wagerWrite(state.signer).acceptGame(id)).wait();
@@ -313,6 +360,7 @@ async function openGame(id) {
   state.selected = null;
   state.legal = [];
   history.replaceState({}, '', `?game=${id}`);
+  seenMsgs.clear();
   relayRegister({ id, ...g }).catch(() => {});
   render();
   if (g.status === 1 && state.account) await bootPlay(g);
@@ -321,6 +369,7 @@ async function openGame(id) {
 function leaveGame() {
   stopRelay();
   channel.close();
+  seenMsgs.clear();
   state.game = null;
   state.preview = startingChess();
   state.selected = null;
@@ -337,6 +386,14 @@ async function bootPlay(g) {
   const isWhite = meIs(g.playerWhite);
   const isPlayer = isWhite || meIs(g.playerBlack);
   if (isPlayer) {
+    await syncChainTime();
+    try {
+      toast('One extra confirm: this game can sign moves for you, so they cannot block payout by ignoring popups.');
+      await ensureSession(state.game.id, state.account, state.signer);
+    } catch (e) {
+      console.warn(e);
+      toast('Continuing without auto-sign. Confirm each position in your wallet.');
+    }
     await ensureOpeningProof();
     await channel.connect(state.game.id, isWhite);
     relayRegister({ id: state.game.id, ...g }).catch(() => {});
@@ -353,7 +410,8 @@ function flushProofs() {
     from: state.account,
     fen: state.game.chess.fen(),
     history: state.game.chess.history({ verbose: true }),
-    states: state.game.states
+    states: state.game.states,
+    sessionKey: sessionAddress(state.game.id)
   });
 }
 
@@ -410,27 +468,39 @@ async function ensureOpeningProof() {
   const me = state.account.toLowerCase();
   if (!seqSigs(0)[me]) {
     toast('Confirm the start position. This protects you if they later refuse to pay.');
-    const sig = await signTyped(state.signer, 'GameState', opening);
+    const sig = await signPlay('GameState', opening);
     saveStateSig(0, state.account, sig);
     saveLocal(g.id, g.states);
   }
 }
 
-function onPeer(msg) {
+async function onPeer(msg) {
   if (!msg || !state.game) return;
+  const k = msgKey(msg);
+  if (k && seenMsgs.has(k)) return;
+  if (k) {
+    seenMsgs.add(k);
+    if (seenMsgs.size > 400) {
+      const first = seenMsgs.values().next().value;
+      seenMsgs.delete(first);
+    }
+  }
   if (msg.type === 'move' && msg.mover && meIs(msg.mover)
     && Number(msg.sequence || 0) <= Number(state.game.states.sequence || 0)) return;
   if (msg.type === 'result' && msg.from && meIs(msg.from)
     && state.game.states.resultSigs?.[state.account.toLowerCase()]) return;
   if (msg.type === 'hello' && msg.from && meIs(msg.from)) return;
   if (msg.type === 'peer-open') {
+    if (!state.peerOn) toast('Opponent is here.');
     state.peerOn = true;
-    toast('Opponent is here.');
     paint();
     return;
   }
   if (msg.type === 'hello') {
     state.peerOn = true;
+    if (msg.sessionKey && msg.from) {
+      sessionKeyCache[`${state.game.id}:${String(msg.from).toLowerCase()}`] = String(msg.sessionKey).toLowerCase();
+    }
     if (msg.states?.seq) {
       const box = seqStore();
       for (const [k, v] of Object.entries(msg.states.seq)) {
@@ -447,7 +517,7 @@ function onPeer(msg) {
     return;
   }
   if (msg.type === 'move') {
-    applyRemoteMove(msg);
+    await applyRemoteMove(msg);
     return;
   }
   if (msg.type === 'result') {
@@ -460,14 +530,18 @@ function onPeer(msg) {
   }
 }
 
-function applyRemoteMove(msg) {
+async function applyRemoteMove(msg) {
   if (msg.state && msg.stateSig && msg.mover) {
     try {
       const rec = verifyTyped('GameState', normalizeState(msg.state), msg.stateSig);
-      if (String(rec).toLowerCase() !== String(msg.mover).toLowerCase()) return;
+      const ok = await signerAllowed(msg.mover, rec);
+      if (!ok) return;
     } catch {
       return;
     }
+  }
+  if (msg.sessionKey && msg.mover) {
+    sessionKeyCache[`${state.game.id}:${String(msg.mover).toLowerCase()}`] = String(msg.sessionKey).toLowerCase();
   }
   const seq = Number(msg.sequence || 0);
   const have = Number(state.game.states.sequence || 0);
@@ -498,7 +572,7 @@ function applyRemoteMove(msg) {
   state.legal = [];
   state.preview = chess;
   if (chess.isGameOver()) maybePrepareEnd();
-  if (!hushRender && state.signer && msg.state) {
+  if (state.signer && msg.state) {
     ensureOurStateSig(state.game.states.sequence, msg.state).catch(() => {});
   }
   paint();
@@ -576,13 +650,25 @@ async function finishMove(from, to, promo) {
   state.lastMove = { from, to };
 
   if (live) {
-    const now = Math.floor(Date.now() / 1000);
+    const now = await syncChainTime();
     const elapsed = Math.max(0, now - Number(prev.lastActionTimestamp));
     let wRem = Number(prev.whiteTimeRemaining);
     let bRem = Number(prev.blackTimeRemaining);
     if (mv.color === 'w') wRem = Math.max(0, wRem - elapsed);
     else bRem = Math.max(0, bRem - elapsed);
     const packed = packedFromChess(chess);
+    try {
+      await assertMoveMatchesLib(
+        prevBoard,
+        algebraicToIndex(from),
+        algebraicToIndex(to),
+        promoToCode(mv.color, promo),
+        packed
+      );
+    } catch (err) {
+      chess.undo();
+      throw err;
+    }
     const prevHash = structHashGameState(prev);
     const newState = normalizeState({
       gameId: state.game.id,
@@ -614,14 +700,14 @@ async function finishMove(from, to, promo) {
       promo
     });
 
-    toast('Confirm this position. Needed if they later refuse to pay.');
-    const stateSig = await signTyped(state.signer, 'GameState', newState);
+    if (!sessionReady(state.game.id)) toast('Confirm this position. Needed if they later refuse to pay.');
+    const stateSig = await signPlay('GameState', newState);
     saveStateSig(Number(newState.sequence), state.account, stateSig);
 
     let finalMove = null;
     if (chess.isCheckmate() || chess.isStalemate()) {
-      toast('Confirm the last move on-chain.');
-      const moveSig = await signTyped(state.signer, 'SignedMove', movePayload);
+      if (!sessionReady(state.game.id)) toast('Confirm the last move on-chain.');
+      const moveSig = await signPlay('SignedMove', movePayload);
       finalMove = { move: movePayload, sig: moveSig, mover: state.account };
       state.game.states.finalMove = finalMove;
     }
@@ -641,7 +727,8 @@ async function finishMove(from, to, promo) {
       prevBoard,
       newBoard: packed,
       move: movePayload,
-      finalMove
+      finalMove,
+      sessionKey: sessionAddress(state.game.id)
     });
     if (chess.isGameOver()) await maybePrepareEnd();
   }
@@ -659,7 +746,7 @@ function currentStateObj() {
     currentPlayer: g.onchain.playerWhite,
     whiteTimeRemaining: BigInt(g.onchain.timeControlSeconds),
     blackTimeRemaining: BigInt(g.onchain.timeControlSeconds),
-    lastActionTimestamp: BigInt(g.onchain.startedAt || Math.floor(Date.now() / 1000)),
+    lastActionTimestamp: BigInt(g.onchain.startedAt || nowTs()),
     previousStateHash: ethers.ZeroHash
   };
 }
@@ -677,17 +764,26 @@ async function maybePrepareEnd() {
 
 async function signCurrentResult() {
   if (!state.signer || !state.game) throw new Error('Connect your wallet first.');
-  const end = state.game.states.pendingEnd || endFromBoard();
-  if (!end.resultType) throw new Error('The game is not finished yet.');
-  const result = {
-    gameId: state.game.id,
-    winner: end.winner,
-    resultType: end.resultType,
-    finalBoardHash: hashPackedBoard(packedFromChess(state.game.chess)),
-    finalSequence: state.game.states.sequence || 0
-  };
+  let result = state.game.states.result;
+  if (!result) {
+    const end = state.game.states.pendingEnd || endFromBoard();
+    if (!end.resultType) throw new Error('The game is not finished yet.');
+    result = {
+      gameId: state.game.id,
+      winner: end.winner,
+      resultType: end.resultType,
+      finalBoardHash: hashPackedBoard(packedFromChess(state.game.chess)),
+      finalSequence: state.game.states.sequence || 0
+    };
+  }
   toast('Confirm the result in your wallet.');
-  const sig = await signTyped(state.signer, 'GameResult', result);
+  const sig = await signTyped(state.signer, 'GameResult', {
+    gameId: result.gameId,
+    winner: result.winner,
+    resultType: result.resultType,
+    finalBoardHash: result.finalBoardHash,
+    finalSequence: result.finalSequence
+  });
   state.game.states.result = result;
   state.game.states.resultSigs = state.game.states.resultSigs || {};
   state.game.states.resultSigs[state.account.toLowerCase()] = sig;
@@ -699,7 +795,24 @@ async function signCurrentResult() {
 
 async function offerDraw() {
   if (!state.game) return;
+  if (state.game.chess.isGameOver()) throw new Error('The game is already over.');
   state.game.states.pendingEnd = { winner: ZERO, resultType: 5 };
+  if (!state.game.states.result) {
+    state.game.states.result = {
+      gameId: state.game.id,
+      winner: ZERO,
+      resultType: 5,
+      finalBoardHash: hashPackedBoard(packedFromChess(state.game.chess)),
+      finalSequence: state.game.states.sequence || 0
+    };
+  }
+  await signCurrentResult();
+}
+
+async function acceptDraw() {
+  if (!state.game?.states?.result || Number(state.game.states.result.resultType) !== 5) {
+    throw new Error('No draw offer to accept.');
+  }
   await signCurrentResult();
 }
 
@@ -723,7 +836,17 @@ async function submitSettle() {
   const sigs = g.states.resultSigs || {};
   if (!sigs[white] || !sigs[black]) throw new Error('Waiting for the other player to confirm.');
   toast('Confirm in your wallet to send the tokens.');
-  await (await wagerWrite(state.signer).settleGame(g.id, g.states.result, sigs[white], sigs[black])).wait();
+  const wtr = wagerWrite(state.signer);
+  try {
+    await wtr.settleGame.staticCall(g.id, g.states.result, sigs[white], sigs[black]);
+  } catch (e) {
+    const raw = String(e?.shortMessage || e?.message || e);
+    if (/transfer|TRANSFER/i.test(raw)) {
+      throw new Error('Payout would fail. If this is POISON, the 1% tax can block the pot.');
+    }
+    throw e;
+  }
+  await (await wtr.settleGame(g.id, g.states.result, sigs[white], sigs[black])).wait();
   toast('Done. Tokens are sent.');
   await loadBalances();
   await refreshLobby();
@@ -743,10 +866,19 @@ function packBoardArg(board) {
 async function ensureOurStateSig(sequence, stateObj) {
   const me = state.account.toLowerCase();
   if (seqSigs(sequence)[me]) return seqSigs(sequence)[me];
-  toast('Confirm this board position in your wallet.');
-  const sig = await signTyped(state.signer, 'GameState', normalizeState(stateObj));
+  if (!sessionReady(state.game.id)) toast('Confirm this board position in your wallet.');
+  const sig = await signPlay('GameState', normalizeState(stateObj));
   saveStateSig(sequence, state.account, sig);
   saveLocal(state.game.id, state.game.states);
+  if (!hushRender) {
+    publish({
+      type: 'hello',
+      from: state.account,
+      fen: state.game.chess.fen(),
+      states: state.game.states,
+      sessionKey: sessionAddress(state.game.id)
+    });
+  }
   return sig;
 }
 
@@ -783,7 +915,17 @@ async function claimWinOnChain() {
     finalMoveSignature: finalMove.sig
   };
   toast('Confirm claim on PulseChain. They cannot block this.');
-  await (await wagerWrite(state.signer).claimTerminalPosition(claim)).wait();
+  const wc = wagerWrite(state.signer);
+  try {
+    await wc.claimTerminalPosition.staticCall(claim);
+  } catch (e) {
+    const raw = String(e?.shortMessage || e?.message || e);
+    if (/transfer|TRANSFER/i.test(raw)) {
+      throw new Error('Claim would fail on payout later. If this is POISON, tax can block the pot.');
+    }
+    throw e;
+  }
+  await (await wc.claimTerminalPosition(claim)).wait();
   toast('Claimed. After 1 hour tap Collect.');
   await refreshLobby();
   await openGame(g.id);
@@ -815,7 +957,17 @@ async function claimTimeoutOnChain() {
 async function finalizeOnChain() {
   if (!state.signer || !state.game) throw new Error('Connect your wallet first.');
   toast('Confirm collect. The 1 hour wait is over.');
-  await (await wagerWrite(state.signer).finalizeDispute(state.game.id)).wait();
+  const wf = wagerWrite(state.signer);
+  try {
+    await wf.finalizeDispute.staticCall(state.game.id);
+  } catch (e) {
+    const raw = String(e?.shortMessage || e?.message || e);
+    if (/transfer|TRANSFER/i.test(raw)) {
+      throw new Error('Collect would fail. If this is POISON, the 1% tax can block the pot.');
+    }
+    throw e;
+  }
+  await (await wf.finalizeDispute(state.game.id)).wait();
   toast('Done. Tokens are sent.');
   await loadBalances();
   await refreshLobby();
@@ -975,7 +1127,7 @@ function remainingNow() {
     last = Number(base.lastActionTimestamp);
   }
   if (g.onchain.status === 1) {
-    const elapsed = Math.max(0, Math.floor(Date.now() / 1000) - last);
+    const elapsed = Math.max(0, nowTs() - last);
     if (turn === 'w') w = Math.max(0, w - elapsed);
     else b = Math.max(0, b - elapsed);
   }
@@ -1122,6 +1274,7 @@ function createPanel() {
         `).join('')}
       </div>
     </div>
+    ${state.tokenKey === 'POISON' ? `<p class="muted">POISON has a 1% tax. If the token does not exclude this game contract, Collect can fail. Prefer MAGIC unless tax is off for ChessWager.</p>` : ''}
     <button class="btn big" data-act="create" ${state.busy ? 'disabled' : ''}>${state.busy ? 'Please wait…' : `Start game with ${tok.symbol}`}</button>
     <h2 style="margin-top:22px">Or join a game</h2>
     <div class="game-list">
@@ -1179,6 +1332,7 @@ function playingPanel() {
   const canForce = over && (g.chess.isCheckmate() || g.chess.isStalemate()) && !!g.states.finalMove;
   const { w, b, turn } = remainingNow();
   const oppTimedOut = !over && ((turn === 'w' && w <= 0) || (turn === 'b' && b <= 0)) && !isMyTurn();
+  const drawOffer = !!(g.states.result && Number(g.states.result.resultType) === 5);
   return `
     <h2>${over ? 'Game finished' : 'Game on'}</h2>
     <p class="lead">${amt} ${tok?.symbol || ''} each. Click a piece, then click where it should go.</p>
@@ -1193,8 +1347,11 @@ function playingPanel() {
       ${!both && canForce ? `<button class="btn secondary big" data-act="claim-win">They refuse? Claim win on-chain</button>` : ''}
     ` : `
       <p class="muted">${isMyTurn() ? 'It is your turn.' : 'Wait for your opponent.'}</p>
+      ${drawOffer && !iSigned ? `<button class="btn big" data-act="accept-draw">Accept draw</button>` : ''}
+      ${drawOffer && iSigned ? `<p class="ok">You accepted the draw. Waiting for Collect.</p>` : ''}
+      ${drawOffer && both ? `<button class="btn big" data-act="collect">Collect tokens</button>` : ''}
       <div class="row">
-        <button class="btn secondary" data-act="draw">Offer draw</button>
+        ${!drawOffer ? `<button class="btn secondary" data-act="draw">Offer draw</button>` : ''}
         <button class="btn danger" data-act="resign">I give up</button>
       </div>
       ${oppTimedOut ? `<button class="btn big" style="margin-top:8px" data-act="claim-timeout">They ran out of time</button>` : ''}
@@ -1371,7 +1528,7 @@ function infoHtml() {
           <li><strong>When the game ends</strong> both tap Confirm, then Collect.</li>
           <li><strong>If they will not sign:</strong> you still Confirm → tap Claim win → wait 1 hour → Collect. They cannot block the payout.</li>
         </ol>
-        <p class="lead" style="margin-top:12px">A draw sends both bets back. If you tap “I give up”, the other player wins. If someone loses internet, reopen the same game link on this site — moves stay saved.</p>
+        <p class="lead" style="margin-top:12px">A draw: one offers, the other taps Accept draw, then Collect. If you tap “I give up”, the other player wins. If someone loses internet, reopen the same game link — moves stay saved. Prefer MAGIC; POISON tax can block payouts.</p>
         <div class="close-row"><button class="btn big" data-act="close-info">Got it</button></div>
       </div>
     </div>

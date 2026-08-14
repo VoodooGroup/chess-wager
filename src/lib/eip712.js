@@ -32,6 +32,13 @@ export const EIP712_TYPES = {
     { name: 'gameId', type: 'uint256' },
     { name: 'player', type: 'address' },
     { name: 'nonce', type: 'uint256' }
+  ],
+  SessionAuthorization: [
+    { name: 'gameId', type: 'uint256' },
+    { name: 'player', type: 'address' },
+    { name: 'sessionKey', type: 'address' },
+    { name: 'expiresAt', type: 'uint64' },
+    { name: 'nonce', type: 'uint256' }
   ]
 };
 
