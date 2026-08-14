@@ -276,9 +276,27 @@ button { cursor: pointer; }
   border-radius: 12px; padding: 16px;
 }
 .sheet h2 { margin: 0 0 8px; font-size: 22px; }
-.sheet ol { margin: 0; padding-left: 18px; }
+.sheet ol, .sheet ul { margin: 0; padding-left: 18px; }
 .sheet li { margin: 8px 0; font-size: 16px; line-height: 1.45; }
 .sheet .close-row { margin-top: 12px; }
+.info-sheet {
+  width: min(520px, 100%);
+  max-height: min(86vh, 720px);
+  overflow: auto;
+}
+.info-sheet h3 {
+  margin: 16px 0 6px;
+  font-size: 15px;
+  letter-spacing: .02em;
+  color: var(--gold);
+}
+.info-sheet p { margin: 0 0 8px; }
+.info-sheet code {
+  font-size: 13px;
+  background: #101216;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
 
 .promo-box { display: flex; gap: 8px; justify-content: center; }
 .promo-box button { width: 56px; height: 56px; padding: 4px; }

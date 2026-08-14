@@ -1518,17 +1518,62 @@ function licenseHtml() {
 function infoHtml() {
   return `
     <div class="overlay" data-act="close-info">
-      <div class="sheet" onclick="event.stopPropagation()">
-        <h2>How this works</h2>
+      <div class="sheet info-sheet" onclick="event.stopPropagation()">
+        <h2>Chess Wager</h2>
+        <p class="lead">Rated-style <strong>over-the-board chess</strong> with a token pot on <strong>PulseChain</strong>. White vs Black. Standard FIDE rules. Not bullet bughouse, not chess960, not daily correspondence.</p>
+
+        <h3>The game</h3>
+        <ul>
+          <li>White moves first. Click a piece, then click a square.</li>
+          <li>Castling, en passant, and pawn promotion (Q/R/B/N) work.</li>
+          <li>Checkmate wins. Stalemate, insufficient material, or threefold repetition is a draw.</li>
+          <li>Each side has a clock: 3, 5, 10, or 15 minutes. When your clock hits 0, they can claim timeout.</li>
+          <li>The board is checked against the on-chain chess library before a move is saved.</li>
+        </ul>
+
+        <h3>How to play for tokens</h3>
         <ol>
-          <li><strong>Connect your wallet</strong> on PulseChain.</li>
-          <li><strong>Start a game</strong> with MAGIC or POISON. That amount is locked.</li>
-          <li><strong>Send the link</strong> to a friend. They put in the same amount.</li>
-          <li><strong>Play chess</strong> on the board. Click a piece, then click a square.</li>
-          <li><strong>When the game ends</strong> both tap Confirm, then Collect.</li>
-          <li><strong>If they will not sign:</strong> you still Confirm → tap Claim win → wait 1 hour → Collect. They cannot block the payout.</li>
+          <li>Connect a wallet on <strong>PulseChain (369)</strong>.</li>
+          <li>Pick <strong>MAGIC</strong> or <strong>POISON</strong> and the bet. Both players lock the same amount.</li>
+          <li>Start a game and send the <code>?game=</code> link. They have 24 hours to join.</li>
+          <li>The first time, your wallet asks once to let this game sign positions for you (so they cannot block payout by ignoring later popups).</li>
+          <li>Play. Creator is White. Joiner is Black.</li>
         </ol>
-        <p class="lead" style="margin-top:12px">A draw: one offers, the other taps Accept draw, then Collect. If you tap “I give up”, the other player wins. If someone loses internet, reopen the same game link — moves stay saved. Prefer MAGIC; POISON tax can block payouts.</p>
+
+        <h3>How you get paid</h3>
+        <ul>
+          <li>Winner takes the pot <strong>minus 5%</strong>. That 5% is burned by the contract.</li>
+          <li>Normal end: both tap <strong>Confirm the result</strong>, then <strong>Collect</strong>.</li>
+          <li>Draw: one taps <strong>Offer draw</strong>, the other taps <strong>Accept draw</strong>, then Collect. Both bets come back. No 5%.</li>
+          <li><strong>I give up</strong> pays the other player (minus 5%).</li>
+        </ul>
+
+        <h3>If they will not sign</h3>
+        <ol>
+          <li>You still tap Confirm.</li>
+          <li>Tap <strong>They refuse? Claim win on-chain</strong> (checkmate / stalemate).</li>
+          <li>Wait <strong>1 hour</strong>. They cannot block this.</li>
+          <li>Tap <strong>Collect tokens</strong>.</li>
+        </ol>
+        <p class="muted">Timeout uses the same wait: claim → 1 hour → Collect. You must have played in this app so the last signed position exists.</p>
+
+        <h3>If someone loses internet</h3>
+        <p class="muted">Reopen the same game link. Moves are saved on voodootoken.com. Idle finished games are cleaned after 48 hours. A live or claimed game is kept at least 14 days. Tokens always stay in the PulseChain contract, not in WordPress.</p>
+
+        <h3>Tokens</h3>
+        <ul>
+          <li>Only official MAGIC and POISON. They are the same reward tokens, used here as a wager.</li>
+          <li><strong>Prefer MAGIC.</strong> POISON has a 1% tax. If ChessWager is not excluded from that tax, Collect can fail and the pot can stick.</li>
+          <li>The wallet only approves this bet, not unlimited tokens.</li>
+        </ul>
+
+        <h3>Risks</h3>
+        <ul>
+          <li>Unaudited. PulseScan may show the contract unverified.</li>
+          <li>Use small amounts. Payouts can fail if a token rejects the 5% burn.</li>
+          <li>A join invite expires after 24 hours. Cancel to get waiting tokens back.</li>
+        </ul>
+
         <div class="close-row"><button class="btn big" data-act="close-info">Got it</button></div>
       </div>
     </div>
