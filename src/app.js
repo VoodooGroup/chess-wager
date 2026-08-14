@@ -396,7 +396,6 @@ async function createGame() {
   const erc = tokenContract(tok.address, state.signer);
   const allow = await erc.allowance(state.account, CHESS_WAGER);
   if (allow < amount) {
-    toast('Your wallet will ask: allow this game to use your tokens.');
     await (await erc.approve(CHESS_WAGER, amount)).wait();
   }
   toast('Confirm in your wallet to start the game.');
@@ -428,7 +427,6 @@ async function acceptGame(id) {
   const allow = await erc.allowance(state.account, CHESS_WAGER);
   const joinAmt = g.intendedWager ?? g.wagerAmount;
   if (allow < joinAmt) {
-    toast('Your wallet will ask: allow this game to use your tokens.');
     await (await erc.approve(CHESS_WAGER, joinAmt)).wait();
   }
   toast('Confirm in your wallet to join.');
