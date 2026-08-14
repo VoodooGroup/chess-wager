@@ -8,6 +8,18 @@ export const RELAY_URL = (WP && WP.relay)
   ? String(WP.relay).replace(/\/?$/, '')
   : ENV_RELAY.replace(/\/?$/, '');
 
+export function inviteUrl(gameId) {
+  const configured = (WP && WP.playUrl) ? String(WP.playUrl).trim() : '';
+  const base = configured || `${location.origin}${location.pathname}`;
+  try {
+    const u = new URL(base, location.origin);
+    u.searchParams.set('game', String(gameId));
+    return u.toString();
+  } catch {
+    return `${location.origin}/?game=${gameId}`;
+  }
+}
+
 export const CHAIN = {
   id: 369,
   hexId: '0x171',

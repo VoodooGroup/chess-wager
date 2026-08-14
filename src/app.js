@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { CHESS_WAGER, TOKENS, TIME_PRESETS } from './config.js';
+import { CHESS_WAGER, TOKENS, TIME_PRESETS, inviteUrl } from './config.js';
 import {
   connectWallet, wagerRead, wagerWrite, tokenContract, tokenByAddress,
   shortAddr, ensurePulseChain, getInjected
@@ -1145,7 +1145,7 @@ function waitingPanel() {
   const g = state.game;
   const tok = tokenByAddress(g.onchain.wagerToken);
   const amt = tok ? fmtAmount(g.onchain.wagerAmount, tok.decimals) : '';
-  const invite = `${location.origin}${location.pathname}?game=${g.id}`;
+  const invite = inviteUrl(g.id);
   const mine = meIs(g.onchain.playerWhite);
   return `
     <h2>${mine ? 'Waiting for opponent' : 'Join this game'}</h2>

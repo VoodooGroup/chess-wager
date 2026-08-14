@@ -3,7 +3,7 @@
  * Plugin Name: Chess Wager
  * Plugin URI: https://voodootoken.com
  * Description: Embeds the Chess Wager dApp and keeps a live relay of who is playing, so a lost internet connection does not wipe the match.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: Voodoo Token
@@ -17,12 +17,13 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('CHESS_WAGER_VER', '1.0.0');
+define('CHESS_WAGER_VER', '1.1.0');
 define('CHESS_WAGER_PATH', plugin_dir_path(__FILE__));
 define('CHESS_WAGER_URL', plugin_dir_url(__FILE__));
 define('CHESS_WAGER_DB_VER', '1');
 
 require_once CHESS_WAGER_PATH . 'includes/class-db.php';
+require_once CHESS_WAGER_PATH . 'includes/class-settings.php';
 require_once CHESS_WAGER_PATH . 'includes/class-rest.php';
 require_once CHESS_WAGER_PATH . 'includes/class-admin.php';
 
@@ -79,8 +80,9 @@ function chess_wager_enqueue() {
     if ($js) {
         wp_enqueue_script('chess-wager-dapp', $url . $js, [], CHESS_WAGER_VER, true);
         $cfg = [
-            'assets' => CHESS_WAGER_URL . 'assets/dapp/',
-            'relay'  => rest_url('chess-wager/v1'),
+            'assets'  => CHESS_WAGER_URL . 'assets/dapp/',
+            'relay'   => rest_url('chess-wager/v1'),
+            'playUrl' => Chess_Wager_Settings::primary(),
         ];
         wp_add_inline_script(
             'chess-wager-dapp',

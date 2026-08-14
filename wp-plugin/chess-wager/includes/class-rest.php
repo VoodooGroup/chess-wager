@@ -56,7 +56,14 @@ class Chess_Wager_REST {
         if (strpos((string) $route, '/chess-wager/v1') !== 0) {
             return $served;
         }
-        header('Access-Control-Allow-Origin: *');
+        $origin = isset($_SERVER['HTTP_ORIGIN']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_ORIGIN'])) : '';
+        $list = Chess_Wager_Settings::origins();
+        if (!$list) {
+            header('Access-Control-Allow-Origin: *');
+        } elseif ($origin && Chess_Wager_Settings::origin_allowed($origin)) {
+            header('Access-Control-Allow-Origin: ' . $origin);
+            header('Vary: Origin');
+        }
         header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type');
         if ($request->get_method() === 'OPTIONS') {

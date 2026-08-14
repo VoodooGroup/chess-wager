@@ -20,9 +20,11 @@ Open the URL Vite prints. Use MetaMask or Rabby on **PulseChain (369)**.
 
 Import this repo. Build command `npm run build`, output `dist`.
 
-To keep games after a refresh or dropped connection, install the WordPress plugin in `wp-plugin/chess-wager` and set this Vercel env var, then redeploy:
+To keep games after a refresh or dropped connection:
 
-`VITE_RELAY_URL` = `https://YOUR-WORDPRESS-SITE.com/wp-json/chess-wager/v1`
+1. Install `wp-plugin/chess-wager` on voodootoken.com
+2. In **Chess Wager** settings, add every dApp URL (one per line), e.g. `https://chess.voodootoken.com`
+3. On Vercel set `VITE_RELAY_URL` to `https://voodootoken.com/wp-json/chess-wager/v1` and redeploy
 
 ## Play
 

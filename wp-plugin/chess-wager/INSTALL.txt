@@ -13,13 +13,17 @@ If WordPress says "Plugin file does not exist":
 
 Then:
 
-1. Make a page
-2. Put this shortcode on it: [chess_wager]
-3. Open that page over HTTPS
-4. Play from that page (not from a random File Manager folder)
+1. Open Chess Wager in the left WP menu
+2. Fill in every URL where the dApp is hosted, one per line
+   Example:
+     https://chess.voodootoken.com
+     https://chess-wager.vercel.app
+   First line = the invite link players should share
+3. On Vercel set VITE_RELAY_URL to the relay URL shown on that same admin page
+4. Optional: also put [chess_wager] on a WordPress page
 
 The plugin stores each game id, both wallet addresses, and every signed move.
-If a player loses internet or refreshes, they open the same game link again.
+If a player loses internet or refreshes, they reopen the same game link.
 
 Do NOT unzip on your PC and upload only some files.
 Do NOT upload only the dApp dist folder — that cannot remember who is playing.
