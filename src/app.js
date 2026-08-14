@@ -1320,7 +1320,7 @@ function boardPanel() {
         <div class="board" id="board">${boardHtml()}</div>
       </div>
     </div>
-    <div class="moves">${moveList()}</div>
+    <div class="moves windows-scrollbar">${moveList()}</div>
   `;
 }
 
@@ -1406,7 +1406,7 @@ function createPanel() {
     </div>
     <button class="btn big" data-act="create"${state.busy ? ' disabled' : ''}>${state.busy ? 'Please wait…' : `Start game with ${tok.symbol}`}</button>
     <h2 style="margin-top:22px">Or join a game</h2>
-    <div class="game-list">
+    <div class="game-list windows-scrollbar">
       ${open.length === 0 ? `<p class="muted">No open games right now.</p>` : open.map(joinRow).join('')}
     </div>
   `;
@@ -1653,7 +1653,7 @@ function victoryHtml() {
   }
   return `
     <div class="overlay" data-act="close-victory">
-      <div class="sheet victory-sheet" onclick="if (!event.target.closest('[data-act]')) event.stopPropagation()">
+      <div class="sheet victory-sheet windows-scrollbar" onclick="if (!event.target.closest('[data-act]')) event.stopPropagation()">
         <p class="victory-word">Victory</p>
         <p class="lead">The steps that won the game</p>
         <ol class="victory-steps">
@@ -1670,7 +1670,7 @@ function victoryHtml() {
 function licenseHtml() {
   return `
     <div class="overlay" data-act="close-license">
-      <div class="sheet license-sheet" onclick="if (!event.target.closest('[data-act]')) event.stopPropagation()">
+      <div class="sheet license-sheet windows-scrollbar" onclick="if (!event.target.closest('[data-act]')) event.stopPropagation()">
         <h2>License</h2>
         <p class="lead">JohnPablok's improved Cburnett chess set.</p>
         <div class="close-row"><button class="btn big" data-act="close-license">Close</button></div>
@@ -1682,7 +1682,7 @@ function licenseHtml() {
 function infoHtml() {
   return `
     <div class="overlay" data-act="close-info">
-      <div class="sheet info-sheet" onclick="if (!event.target.closest('[data-act]')) event.stopPropagation()">
+      <div class="sheet info-sheet windows-scrollbar" onclick="if (!event.target.closest('[data-act]')) event.stopPropagation()">
         <h2>Chess Wager</h2>
         <p class="lead">A blockchain-powered chess mini-game on PulseChain where you can challenge friends using MAGIC Reward Tokens or POISON Reward Tokens in the prize pot. Play White vs. Black in traditional over-the-board style chess under standard FIDE rules. No bullet bughouse, no Chess960, and no daily correspondence. Just classic rated-style chess with tokens at stake.</p>
 

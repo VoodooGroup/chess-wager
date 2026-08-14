@@ -14,12 +14,38 @@
 }
 
 * { box-sizing: border-box; }
+html {
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
 html, body {
   margin: 0;
-  min-height: 100%;
   background: var(--bg);
   color: var(--text);
   font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+body {
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+}
+#page-scroll {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+body.voodoo-ui-open #page-scroll {
+  overflow: hidden;
 }
 button, input { font: inherit; }
 button { cursor: pointer; }
@@ -334,7 +360,8 @@ button { cursor: pointer; }
 .info-sheet {
   width: min(520px, 100%);
   max-height: min(86vh, 720px);
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
 .info-sheet h3 {
   margin: 16px 0 6px;
@@ -377,7 +404,8 @@ button { cursor: pointer; }
 .victory-sheet {
   width: min(420px, 100%);
   max-height: min(86vh, 720px);
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: scroll;
   text-align: center;
 }
 .victory-word {
