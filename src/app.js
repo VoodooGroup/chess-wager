@@ -1,7 +1,8 @@
 import { ethers } from 'ethers';
 import { CHESS_WAGER, TOKENS, TIME_PRESETS, inviteUrl } from './config.js';
 import {
-  connectWallet, wagerRead, wagerWrite, tokenContract, tokenByAddress,
+  connectWallet, connectVoodooWallet, getVoodooWalletProvider, prefetchVoodooProvider,
+  wagerRead, wagerWrite, tokenContract, tokenByAddress,
   shortAddr, ensurePulseChain, getInjected
 } from './lib/wallet.js';
 import {
@@ -23,6 +24,8 @@ const channel = new GameChannel();
 const state = {
   account: null,
   signer: null,
+  eth: null,
+  walletKind: null,
   balances: { MAGIC: 0n, POISON: 0n },
   tokenKey: 'MAGIC',
   amount: '100',
@@ -144,7 +147,6 @@ export function mount(root) {
         </div>
         <div class="wallet">
           <div id="wallet-box"></div>
-          <div id="rk-root"></div>
         </div>
       </header>
       <div id="main"></div>
@@ -172,6 +174,7 @@ export function mount(root) {
   setInterval(refreshLobby, 20000);
   const q = new URLSearchParams(location.search).get('game');
   if (q) openGame(q).catch(setErr);
+  prefetchVoodooProvider();
   const eth = getInjected();
   eth?.on?.('accountsChanged', () => location.reload());
   eth?.on?.('chainChanged', () => location.reload());
@@ -196,6 +199,8 @@ function bind(root) {
     try {
       state.err = '';
       if (act === 'connect') await doConnect();
+      else if (act === 'connect-voodoo') await doConnectVoodoo();
+      else if (act === 'connect-other') await doConnectOther();
       else if (act === 'info') { state.showInfo = !state.showInfo; render(); }
       else if (act === 'close-info') { state.showInfo = false; render(); }
       else if (act === 'license') { state.showLicense = !state.showLicense; render(); }
@@ -234,22 +239,68 @@ function bind(root) {
   });
 }
 
-async function doConnect() {
-  const { signer, address } = await connectWallet();
-  await applyExternalWallet(signer, address);
+function bindActiveWallet(eth) {
+  if (!eth?.on || state._boundEth === eth) return;
+  state._boundEth = eth;
+  try {
+    eth.on('accountsChanged', () => location.reload());
+    eth.on('chainChanged', () => location.reload());
+  } catch { /* */ }
 }
 
-export async function applyExternalWallet(signer, address) {
+async function doConnectVoodoo() {
+  if (state.account && state.walletKind === 'voodoo') return;
+  const { signer, address, ethereum } = await connectVoodooWallet();
+  await applyExternalWallet(signer, address, 'voodoo', ethereum);
+  toast('Voodoo Wallet connected');
+}
+
+async function doConnectOther() {
+  const api = window.ChessRainbow;
+  if (!api?.ready || !api.openConnectModal) {
+    throw new Error('RainbowKit is still loading. Refresh the page and try again.');
+  }
+  if (state.walletKind === 'rainbow' && api.openAccountModal) {
+    api.openAccountModal();
+    return;
+  }
+  api.openConnectModal();
+}
+
+async function doConnect() {
+  if (state.signer) return;
+  const voodoo = await getVoodooWalletProvider();
+  if (voodoo) {
+    await doConnectVoodoo();
+    return;
+  }
+  try {
+    const { signer, address, ethereum } = await connectWallet();
+    await applyExternalWallet(signer, address, 'injected', ethereum);
+  } catch {
+    doConnectOther();
+    throw new Error('Connect Voodoo Wallet or click Other and pick a wallet.');
+  }
+}
+
+export async function applyExternalWallet(signer, address, kind = 'injected', eth = null) {
   state.signer = signer;
   state.account = address;
+  state.walletKind = kind;
+  state.eth = eth || null;
+  bindActiveWallet(eth);
   await loadBalances();
   render();
   await refreshLobby();
 }
 
-export function clearExternalWallet() {
+export function clearExternalWallet(onlyKind) {
+  if (onlyKind && state.walletKind && state.walletKind !== onlyKind) return;
+  if (!state.account && !state.signer) return;
   state.signer = null;
   state.account = null;
+  state.eth = null;
+  state.walletKind = null;
   state.balances = { MAGIC: 0n, POISON: 0n };
   render();
 }
@@ -322,7 +373,7 @@ function plainGame(g) {
 async function createGame() {
   if (!state.signer) await doConnect();
   if (!state.signer) throw new Error('Connect your wallet first.');
-  await ensurePulseChain();
+  await ensurePulseChain(state.eth || getInjected());
   const tok = TOKENS[state.tokenKey];
   const amount = parseAmount(state.amount, tok.decimals);
   if (amount <= 0n) throw new Error('Enter an amount greater than 0.');
@@ -353,7 +404,7 @@ async function createGame() {
 async function acceptGame(id) {
   if (!state.signer) await doConnect();
   if (!state.signer) throw new Error('Connect your wallet first.');
-  await ensurePulseChain();
+  await ensurePulseChain(state.eth || getInjected());
   const g = await wagerRead().getGame(id);
   const tok = tokenByAddress(g.wagerToken);
   if (!tok) throw new Error('This game uses an unknown token.');
@@ -1208,6 +1259,8 @@ function render() {
 }
 
 function walletHtml() {
+  const voodooOn = state.walletKind === 'voodoo' && state.account;
+  const otherOn = state.walletKind === 'rainbow' && state.account;
   return `
     <div class="wallet-row">
       ${state.account ? `
@@ -1215,10 +1268,14 @@ function walletHtml() {
         <div class="pill bal"><img src="${TOKENS.POISON.icon}" alt="" /><span class="pill-amt">${fmtAmount(state.balances.POISON, 9)}</span> POISON</div>
       ` : ''}
       <button class="info-btn" data-act="info" title="How it works" aria-label="How it works">i</button>
-      <a class="btn ghost wallet-extra" href="https://voodootoken.com/" target="_blank" rel="noopener noreferrer">
-        <img src="./voodoo-wallet.png" alt="" /> Voodoo Wallet
-      </a>
-      ${state.account ? `<div class="pill addr">${shortAddr(state.account)}</div>` : ''}
+      <div class="wallet-actions">
+        <button type="button" class="wallet-btn wallet-btn-voodoo${voodooOn ? ' is-connected' : ''}" data-act="connect-voodoo"${state.account && !voodooOn ? ' disabled' : ''}>
+          <img src="./voodoo-wallet.png" alt="" /> ${voodooOn ? shortAddr(state.account) : 'Voodoo Wallet'}
+        </button>
+        <button type="button" class="wallet-btn wallet-btn-other${otherOn ? ' is-connected' : ''}" data-act="connect-other"${state.account && !otherOn ? ' disabled' : ''}>
+          ${otherOn ? shortAddr(state.account) : 'Other'}
+        </button>
+      </div>
     </div>
   `;
 }
@@ -1697,7 +1754,8 @@ function setErr(err) {
     [/unsupported token/i, 'This game only accepts MAGIC or POISON.'],
     [/challengeexpired|expired/i, 'This invite is too old. Start a new game.'],
     [/notplayer|not creator/i, 'This action is only for the two players.'],
-    [/invalidstatus|alreadyfinished/i, 'This game already moved on.']
+    [/invalidstatus|alreadyfinished/i, 'This game already moved on.'],
+    [/not detected|install the extension/i, 'Voodoo Wallet was not detected. Install the extension, open it and sign in, then refresh this page.']
   ];
   let msg = raw;
   for (const [re, nice] of map) if (re.test(raw)) { msg = nice; break; }

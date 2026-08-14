@@ -2,21 +2,15 @@ import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider, useAccount, useWalletClient } from 'wagmi';
-import { createConfig, http } from 'wagmi';
+import { http } from 'wagmi';
 import { defineChain } from 'viem';
 import {
   RainbowKitProvider,
-  ConnectButton,
   darkTheme,
-  connectorsForWallets
+  getDefaultConfig,
+  useConnectModal,
+  useAccountModal
 } from '@rainbow-me/rainbowkit';
-import {
-  metaMaskWallet,
-  rainbowWallet,
-  rabbyWallet,
-  injectedWallet,
-  walletConnectWallet
-} from '@rainbow-me/rainbowkit/wallets';
 import { BrowserProvider } from 'ethers';
 import { applyExternalWallet, clearExternalWallet } from '../app.js';
 import '@rainbow-me/rainbowkit/styles.css';
@@ -35,23 +29,14 @@ const pulsechain = defineChain({
 
 const projectId = import.meta.env.VITE_WC_PROJECT_ID || '21fef48091f12692cad574a6f7753643';
 
-const connectors = connectorsForWallets(
-  [
-    {
-      groupName: 'Suggested',
-      wallets: [injectedWallet, metaMaskWallet, rabbyWallet, rainbowWallet, walletConnectWallet]
-    }
-  ],
-  { appName: 'Chess Wager', projectId }
-);
-
-const wagmiConfig = createConfig({
+const wagmiConfig = getDefaultConfig({
+  appName: 'Chess Wager',
+  projectId,
   chains: [pulsechain],
-  connectors,
+  ssr: false,
   transports: {
     [pulsechain.id]: http('https://rpc.pulsechain.com')
-  },
-  ssr: false
+  }
 });
 
 const queryClient = new QueryClient();
@@ -67,20 +52,37 @@ function walletClientToSigner(walletClient) {
   return provider.getSigner(account.address);
 }
 
-function OtherButton() {
+function RainbowBridge() {
   const { isConnected, address } = useAccount();
   const { data: walletClient } = useWalletClient();
+  const { openConnectModal } = useConnectModal();
+  const { openAccountModal } = useAccountModal();
+
+  useEffect(() => {
+    window.ChessRainbow = {
+      ready: true,
+      openConnectModal: () => openConnectModal?.(),
+      openAccountModal: () => openAccountModal?.()
+    };
+    window.dispatchEvent(new Event('chess:rainbow-ready'));
+    return () => {
+      if (window.ChessRainbow) window.ChessRainbow.ready = false;
+    };
+  }, [openConnectModal, openAccountModal]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       if (!isConnected || !walletClient || !address) {
-        if (!isConnected) clearExternalWallet();
+        if (!isConnected) clearExternalWallet('rainbow');
         return;
       }
       try {
         const signer = await walletClientToSigner(walletClient);
-        if (!cancelled) await applyExternalWallet(signer, address);
+        const eth = {
+          request: (args) => walletClient.request(args)
+        };
+        if (!cancelled) await applyExternalWallet(signer, address, 'rainbow', eth);
       } catch (err) {
         console.warn(err);
       }
@@ -88,26 +90,7 @@ function OtherButton() {
     return () => { cancelled = true; };
   }, [isConnected, address, walletClient]);
 
-  return (
-    <ConnectButton.Custom>
-      {({ openConnectModal, openAccountModal, mounted }) => {
-        const ready = mounted;
-        if (!ready) return null;
-        if (isConnected) {
-          return (
-            <button type="button" className="btn ghost wallet-extra" onClick={openAccountModal}>
-              Other
-            </button>
-          );
-        }
-        return (
-          <button type="button" className="btn" onClick={openConnectModal}>
-            Other
-          </button>
-        );
-      }}
-    </ConnectButton.Custom>
-  );
+  return null;
 }
 
 export function mountRainbow(el) {
@@ -121,10 +104,10 @@ export function mountRainbow(el) {
             accentColorForeground: '#1a1408',
             borderRadius: 'medium'
           })}
-          modalSize="compact"
+          modalSize="wide"
           initialChain={pulsechain}
         >
-          <OtherButton />
+          <RainbowBridge />
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
