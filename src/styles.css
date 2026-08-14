@@ -391,14 +391,26 @@ button { cursor: pointer; }
   left: 10px;
   bottom: 8px;
   z-index: 20;
-  border: 0;
-  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: #5c616a;
   font-size: 11px;
   padding: 2px 4px;
   letter-spacing: .02em;
 }
-.license-tab:hover { color: #8b909a; }
+.license-tab button,
+.license-tab a {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  letter-spacing: inherit;
+  text-decoration: none;
+}
+.license-tab button:hover,
+.license-tab a:hover { color: #8b909a; }
 .license-sheet .muted { display: block; margin: 0 0 12px; line-height: 1.45; }
 
 .victory-sheet {

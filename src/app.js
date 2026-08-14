@@ -3,7 +3,7 @@ import { CHESS_WAGER, TOKENS, TIME_PRESETS, inviteUrl } from './config.js';
 import {
   connectWallet, connectVoodooWallet, getVoodooWalletProvider, prefetchVoodooProvider,
   wagerRead, wagerWrite, tokenContract, tokenByAddress,
-  shortAddr, ensurePulseChain, getInjected
+  shortAddr, ensurePulseChain, getInjected, explorerAddr
 } from './lib/wallet.js';
 import {
   startingChess, chessFromFen, packedFromChess, hashPackedBoard,
@@ -151,7 +151,11 @@ export function mount(root) {
         </div>
       </header>
       <div id="main"></div>
-      <button class="license-tab" data-act="license" type="button">License</button>
+      <div class="license-tab">
+        <button data-act="license" type="button">License</button>
+        <span>|</span>
+        <a href="${explorerAddr(CHESS_WAGER)}" target="_blank" rel="noopener noreferrer">Contract</a>
+      </div>
       <div id="modal"></div>
       <div id="toast" class="toast hidden"></div>
       <footer class="site-foot">
