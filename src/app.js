@@ -1684,7 +1684,7 @@ function infoHtml() {
     <div class="overlay" data-act="close-info">
       <div class="sheet info-sheet" onclick="event.stopPropagation()">
         <h2>Chess Wager</h2>
-        <p class="lead">Rated-style <strong>over-the-board chess</strong> with a token pot on <strong>PulseChain</strong>. White vs Black. Standard FIDE rules. Not bullet bughouse, not chess960, not daily correspondence.</p>
+        <p class="lead">A blockchain-powered chess mini-game on PulseChain where you can challenge friends using MAGIC Reward Tokens or POISON Reward Tokens in the prize pot. Play White vs. Black in traditional over-the-board style chess under standard FIDE rules. No bullet bughouse, no Chess960, and no daily correspondence. Just classic rated-style chess with tokens at stake.</p>
 
         <h3>The game</h3>
         <ul>
