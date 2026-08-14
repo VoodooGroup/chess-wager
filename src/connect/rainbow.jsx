@@ -30,7 +30,7 @@ import {
 import { injected, walletConnect } from 'wagmi/connectors';
 import { BrowserProvider } from 'ethers';
 import { applyExternalWallet, clearExternalWallet } from '../app.js';
-import { VOODOO_INSTALL_URL, isVoodooProvider } from '../lib/wallet.js';
+import { VOODOO_INSTALL_URL, isVoodooProvider, getVoodooWalletProvider } from '../lib/wallet.js';
 import '@rainbow-me/rainbowkit/styles.css';
 
 const pulsechain = defineChain({
@@ -127,15 +127,22 @@ function findVoodooInjected() {
   return undefined;
 }
 
+function voodooIconUrl() {
+  if (typeof window === 'undefined') return `${import.meta.env.BASE_URL}voodoo-wallet.png`;
+  return new URL('voodoo-wallet.png', window.location.href).href;
+}
+
 function voodooWallet() {
   return {
     id: 'voodoo',
     name: 'Voodoo Wallet',
     shortName: 'Voodoo',
-    iconUrl: `${import.meta.env.BASE_URL}voodoo-wallet.png`,
+    rdns: 'app.voodoowallet',
+    iconUrl: async () => voodooIconUrl(),
     iconBackground: '#ffffff',
     iconAccent: '#073749',
-    installed: Boolean(findVoodooInjected()),
+    installed: true,
+    hidden: () => false,
     downloadUrls: {
       browserExtension: VOODOO_INSTALL_URL,
       chrome: VOODOO_INSTALL_URL
@@ -150,15 +157,55 @@ function voodooWallet() {
         ]
       }
     },
-    createConnector: (walletDetails) =>
-      injected({
+    createConnector: (walletDetails) => {
+      const factory = injected({
         target: () => ({
           id: 'voodoo',
           name: 'Voodoo Wallet',
           provider: findVoodooInjected()
-        }),
-        ...walletDetails
-      })
+        })
+      });
+      return (config) => {
+        const connector = factory(config);
+        return {
+          ...connector,
+          ...walletDetails,
+          id: 'voodoo',
+          name: 'Voodoo Wallet',
+          type: connector.type || 'injected',
+          async getProvider() {
+            const provider = await getVoodooWalletProvider();
+            if (provider) return provider;
+            try {
+              return await connector.getProvider?.();
+            } catch {
+              return undefined;
+            }
+          },
+          async connect(params) {
+            const provider = await getVoodooWalletProvider();
+            if (!provider) {
+              const { showVoodooMissingPopup } = await import('../lib/voodooUi.js');
+              showVoodooMissingPopup();
+              const err = new Error('Voodoo Wallet not detected. Install and unlock the extension, then refresh this page.');
+              err.name = 'ProviderNotFoundError';
+              err.code = 'VOODOO_NOT_FOUND';
+              throw err;
+            }
+            try {
+              await provider.request({
+                method: 'wallet_requestPermissions',
+                params: [{ eth_accounts: {} }]
+              });
+            } catch (err) {
+              if (err?.code === 4001 || /reject|denied/i.test(String(err?.message || ''))) throw err;
+            }
+            await provider.request({ method: 'eth_requestAccounts' });
+            return connector.connect(params);
+          }
+        };
+      };
+    }
   };
 }
 
