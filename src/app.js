@@ -1185,10 +1185,11 @@ function playingPanel() {
     ${over ? `
       <div class="step">
         <strong>${turnText()}</strong>
-        Fast way: both tap Confirm, then Collect. If they refuse, use Claim win.
+        Fast way: both tap Confirm, then Collect.
       </div>
       ${!iSigned ? `<button class="btn big" data-act="sign-result">Confirm the result</button>` : `<p class="ok">You confirmed. Waiting for the other player.</p>`}
       ${both ? `<button class="btn big" data-act="collect">Collect tokens</button>` : ''}
+      ${!both ? refuseHelpHtml(canForce) : ''}
       ${!both && canForce ? `<button class="btn secondary big" data-act="claim-win">They refuse? Claim win on-chain</button>` : ''}
     ` : `
       <p class="muted">${isMyTurn() ? 'It is your turn.' : 'Wait for your opponent.'}</p>
@@ -1202,12 +1203,37 @@ function playingPanel() {
   `;
 }
 
+function refuseHelpHtml(canForce) {
+  return `
+    <div class="step refuse-help">
+      <strong>If they will not sign</strong>
+      <ol>
+        <li>You still tap <em>Confirm the result</em> in your wallet.</li>
+        <li>If they ignore it, tap <em>They refuse? Claim win on-chain</em>.</li>
+        <li>Wait 1 hour. They cannot block this.</li>
+        <li>Then tap <em>Collect tokens</em>.</li>
+      </ol>
+      ${canForce
+        ? `<p class="muted">You already have the last-move proof. You can claim without them.</p>`
+        : `<p class="muted">Claim win only works after checkmate or stalemate, and you must have confirmed the last position during the game.</p>`}
+    </div>
+  `;
+}
+
 function disputedPanel() {
   const g = state.game;
   const left = Math.max(0, (g.onchain.disputeDeadline || 0) - Math.floor(Date.now() / 1000));
   return `
     <h2>Win claimed</h2>
-    <p class="lead">The contract is holding the pot. They cannot block this.</p>
+    <p class="lead">They refused to sign. The contract is holding the pot. They cannot block this.</p>
+    <div class="step refuse-help">
+      <strong>What you do now</strong>
+      <ol>
+        <li>Wait the 1 hour. Keep this game link.</li>
+        <li>When the timer is done, tap Collect tokens.</li>
+        <li>Confirm in your wallet. The pot minus 5% is sent to you.</li>
+      </ol>
+    </div>
     ${left > 0
       ? `<div class="step" id="dispute-wait">Wait <strong>${fmtClock(left)}</strong> then tap Collect.</div>`
       : `<button class="btn big" data-act="finalize">Collect tokens</button>`}
@@ -1342,7 +1368,8 @@ function infoHtml() {
           <li><strong>Start a game</strong> with MAGIC or POISON. That amount is locked.</li>
           <li><strong>Send the link</strong> to a friend. They put in the same amount.</li>
           <li><strong>Play chess</strong> on the board. Click a piece, then click a square.</li>
-          <li><strong>When the game ends</strong> both tap Confirm, then Collect. If they refuse, tap Claim win. After 1 hour, Collect. Winner gets the pot minus 5%.</li>
+          <li><strong>When the game ends</strong> both tap Confirm, then Collect.</li>
+          <li><strong>If they will not sign:</strong> you still Confirm → tap Claim win → wait 1 hour → Collect. They cannot block the payout.</li>
         </ol>
         <p class="lead" style="margin-top:12px">A draw sends both bets back. If you tap “I give up”, the other player wins. If someone loses internet, reopen the same game link on this site — moves stay saved.</p>
         <div class="close-row"><button class="btn big" data-act="close-info">Got it</button></div>

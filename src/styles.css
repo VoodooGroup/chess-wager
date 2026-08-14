@@ -154,6 +154,12 @@ button { cursor: pointer; }
   border-radius: 8px; padding: 10px; margin: 8px 0; font-size: 15px;
 }
 .step strong { display: block; margin-bottom: 4px; }
+.refuse-help ol {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+.refuse-help li { margin: 4px 0; color: var(--muted); }
+.refuse-help em { color: var(--text); font-style: normal; font-weight: 600; }
 .invite { display: flex; gap: 6px; margin-top: 6px; }
 .invite input {
   flex: 1; background: #0b0c0f; border: 1px solid var(--line);
