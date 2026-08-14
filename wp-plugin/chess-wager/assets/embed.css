@@ -1,0 +1,12 @@
+.chess-wager-wrap {
+  max-width: 980px;
+  margin: 0 auto;
+}
+.chess-wager-wrap img {
+  max-width: none;
+  height: auto;
+}
+.chess-wager-wrap button,
+.chess-wager-wrap input {
+  font-family: inherit;
+}

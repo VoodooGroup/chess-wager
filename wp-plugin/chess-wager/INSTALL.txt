@@ -1,0 +1,25 @@
+Chess Wager — install
+=====================
+
+Correct path after install MUST be:
+
+  wp-content/plugins/chess-wager/chess-wager.php
+
+If WordPress says "Plugin file does not exist":
+
+1. Delete any leftover chess-wager folder
+2. Upload this zip via Plugins → Add New → Upload
+3. Activate "Chess Wager"
+
+Then:
+
+1. Make a page
+2. Put this shortcode on it: [chess_wager]
+3. Open that page over HTTPS
+4. Play from that page (not from a random File Manager folder)
+
+The plugin stores each game id, both wallet addresses, and every signed move.
+If a player loses internet or refreshes, they open the same game link again.
+
+Do NOT unzip on your PC and upload only some files.
+Do NOT upload only the dApp dist folder — that cannot remember who is playing.

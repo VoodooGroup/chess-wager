@@ -1,0 +1,457 @@
+[
+  {
+    "name": "applyMove",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "b",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "squares",
+            "type": "uint8[64]",
+            "internalType": "uint8[64]"
+          },
+          {
+            "name": "whiteToMove",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "castlingRights",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "enPassantSquare",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "halfmoveClock",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ],
+        "internalType": "struct ChessLib.PackedBoard"
+      },
+      {
+        "name": "from",
+        "type": "uint8",
+        "internalType": "uint8"
+      },
+      {
+        "name": "to",
+        "type": "uint8",
+        "internalType": "uint8"
+      },
+      {
+        "name": "promotion",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "squares",
+            "type": "uint8[64]",
+            "internalType": "uint8[64]"
+          },
+          {
+            "name": "whiteToMove",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "castlingRights",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "enPassantSquare",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "halfmoveClock",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ],
+        "internalType": "struct ChessLib.PackedBoard"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "name": "evaluateTerminal",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "b",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "squares",
+            "type": "uint8[64]",
+            "internalType": "uint8[64]"
+          },
+          {
+            "name": "whiteToMove",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "castlingRights",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "enPassantSquare",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "halfmoveClock",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ],
+        "internalType": "struct ChessLib.PackedBoard"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "name": "hasLegalMove",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "b",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "squares",
+            "type": "uint8[64]",
+            "internalType": "uint8[64]"
+          },
+          {
+            "name": "whiteToMove",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "castlingRights",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "enPassantSquare",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "halfmoveClock",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ],
+        "internalType": "struct ChessLib.PackedBoard"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "name": "hashBoard",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "b",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "squares",
+            "type": "uint8[64]",
+            "internalType": "uint8[64]"
+          },
+          {
+            "name": "whiteToMove",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "castlingRights",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "enPassantSquare",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "halfmoveClock",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ],
+        "internalType": "struct ChessLib.PackedBoard"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "name": "isCheckmate",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "b",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "squares",
+            "type": "uint8[64]",
+            "internalType": "uint8[64]"
+          },
+          {
+            "name": "whiteToMove",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "castlingRights",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "enPassantSquare",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "halfmoveClock",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ],
+        "internalType": "struct ChessLib.PackedBoard"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "name": "isInCheck",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "b",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "squares",
+            "type": "uint8[64]",
+            "internalType": "uint8[64]"
+          },
+          {
+            "name": "whiteToMove",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "castlingRights",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "enPassantSquare",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "halfmoveClock",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ],
+        "internalType": "struct ChessLib.PackedBoard"
+      },
+      {
+        "name": "white",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "name": "isStalemate",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "b",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "squares",
+            "type": "uint8[64]",
+            "internalType": "uint8[64]"
+          },
+          {
+            "name": "whiteToMove",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "castlingRights",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "enPassantSquare",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "halfmoveClock",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ],
+        "internalType": "struct ChessLib.PackedBoard"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "name": "startingPackedBoard",
+    "type": "function",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "b",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "squares",
+            "type": "uint8[64]",
+            "internalType": "uint8[64]"
+          },
+          {
+            "name": "whiteToMove",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "castlingRights",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "enPassantSquare",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "halfmoveClock",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ],
+        "internalType": "struct ChessLib.PackedBoard"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "name": "validateBoard",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "b",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "squares",
+            "type": "uint8[64]",
+            "internalType": "uint8[64]"
+          },
+          {
+            "name": "whiteToMove",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "castlingRights",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "enPassantSquare",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "halfmoveClock",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ],
+        "internalType": "struct ChessLib.PackedBoard"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "pure"
+  }
+]

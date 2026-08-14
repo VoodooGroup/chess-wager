@@ -1,0 +1,22 @@
+{
+  "name": "chess-wager-dapp",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host"
+  },
+  "dependencies": {
+    "chess.js": "^1.1.0",
+    "ethers": "^6.13.5",
+    "peerjs": "^1.5.4"
+  },
+  "devDependencies": {
+    "vite": "^5.4.11"
+  },
+  "allowScripts": {
+    "esbuild@0.21.5": true
+  }
+}
