@@ -453,3 +453,118 @@ button { cursor: pointer; }
 
 .hidden { display: none !important; }
 .practice { display: none; }
+
+body.voodoo-ui-open {
+  overflow: hidden;
+}
+
+.voodoo-ui-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #111;
+  -webkit-font-smoothing: antialiased;
+}
+
+.voodoo-ui-modal.hidden {
+  display: none !important;
+}
+
+.voodoo-ui-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.voodoo-ui-panel {
+  position: relative;
+  background: #fff;
+  color: #111;
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.voodoo-ui-title {
+  margin: 0 0 0.5rem;
+  padding: 0;
+  font-family: inherit;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #111;
+  letter-spacing: normal;
+}
+
+.voodoo-ui-message {
+  margin: 0 0 1rem;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #374151;
+  white-space: pre-wrap;
+}
+
+.voodoo-ui-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.voodoo-ui-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.voodoo-ui-btn-primary {
+  background: #1e40af;
+  color: #fff;
+}
+
+.voodoo-ui-btn-secondary {
+  background: #e5e7eb;
+  color: #111;
+  text-decoration: none;
+  display: inline-flex;
+}
+
+.voodoo-ui-btn-ghost {
+  background: transparent;
+  color: #4b5563;
+}
+
+.voodoo-ui-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 0.75rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111;
+  background: #e5e7eb;
+}

@@ -17,6 +17,7 @@ import { pieceImg } from './lib/pieces.js';
 import { nowTs, syncChainTime } from './lib/chainTime.js';
 import { ensureSession, sessionReady, sessionAddress, loadSession } from './lib/session.js';
 import { assertMoveMatchesLib } from './lib/chesslib.js';
+import { showVoodooMissingPopup, isVoodooMissing, VoodooUI } from './lib/voodooUi.js';
 
 const ZERO = ethers.ZeroAddress;
 const channel = new GameChannel();
@@ -250,9 +251,23 @@ function bindActiveWallet(eth) {
 
 async function doConnectVoodoo() {
   if (state.account && state.walletKind === 'voodoo') return;
-  const { signer, address, ethereum } = await connectVoodooWallet();
-  await applyExternalWallet(signer, address, 'voodoo', ethereum);
-  toast('Voodoo Wallet connected');
+  try {
+    const { signer, address, ethereum } = await connectVoodooWallet();
+    await applyExternalWallet(signer, address, 'voodoo', ethereum);
+    toast('Voodoo Wallet connected');
+  } catch (err) {
+    if (isVoodooMissing(err)) {
+      await showVoodooMissingPopup(err);
+      return;
+    }
+    if (err?.code === 4001 || /reject|cancel|denied|restart/i.test(err?.message || '')) {
+      return;
+    }
+    await VoodooUI.alert(err?.message || 'Connection failed', {
+      title: 'Voodoo Wallet',
+      type: 'error'
+    });
+  }
 }
 
 async function doConnectOther() {
