@@ -1710,8 +1710,19 @@ function infoHtml() {
         <ul>
           <li>Winner takes the pot <strong>minus 5%</strong>. That 5% goes to the fee address (not the zero address).</li>
           <li>Normal end: both tap <strong>Confirm the result</strong>, then <strong>Collect</strong>.</li>
-          <li>Draw: one taps <strong>Offer draw</strong>, the other taps <strong>Accept draw</strong>, then Collect. Both bets come back. No 5%.</li>
           <li><strong>I give up</strong> pays the other player (minus 5%).</li>
+        </ul>
+
+        <h3>If it is a draw</h3>
+        <p class="lead">Nobody wins the pot. Each player gets <strong>their own bet back</strong>. There is <strong>no 5% fee</strong>.</p>
+        <ul>
+          <li>On the board: stalemate, insufficient material, threefold repetition, or the 50-move rule.</li>
+          <li>By agreement: one taps <strong>Offer draw</strong>, the other taps <strong>Accept draw</strong>.</li>
+          <li>Then both tap <strong>Confirm</strong>, then <strong>Collect</strong>. White gets White’s deposit back. Black gets Black’s deposit back.</li>
+          <li>Example: 50 MAGIC each → both receive 50 MAGIC back. The fee address gets nothing.</li>
+          <li>POISON still has a 1% transfer tax. On Collect each refund is a transfer, so you may get about <strong>99%</strong> back, not 100%. MAGIC has no tax.</li>
+          <li>If they refuse to sign a <strong>stalemate</strong>, use <strong>Claim win on-chain</strong>, wait 1 hour, then Collect. You still only get your own bet back — it stays a draw.</li>
+          <li>Threefold, insufficient material, or 50-move draws need <strong>both signatures</strong>. If they never sign, the pot stays in the contract until they do.</li>
         </ul>
 
         <h3>If they will not sign</h3>
