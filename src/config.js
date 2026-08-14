@@ -4,9 +4,8 @@ const ENV_RELAY = (typeof import.meta !== 'undefined' && import.meta.env && impo
   : '';
 
 export const ASSET_BASE = (WP && WP.assets) ? String(WP.assets).replace(/\/?$/, '/') : './';
-export const RELAY_URL = (WP && WP.relay)
-  ? String(WP.relay).replace(/\/?$/, '')
-  : ENV_RELAY.replace(/\/?$/, '');
+export const DEFAULT_RELAY_URL = 'https://voodootoken.com/wp-json/chess-wager/v1';
+export const RELAY_URL = ((WP && WP.relay) ? String(WP.relay) : (ENV_RELAY || DEFAULT_RELAY_URL)).replace(/\/?$/, '');
 
 export function inviteUrl(gameId) {
   const configured = (WP && WP.playUrl) ? String(WP.playUrl).trim() : '';

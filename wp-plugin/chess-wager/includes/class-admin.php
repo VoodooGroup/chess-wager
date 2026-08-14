@@ -43,7 +43,7 @@ class Chess_Wager_Admin {
         echo '<textarea name="dapp_urls" rows="5" class="large-text code">' . esc_textarea(Chess_Wager_Settings::raw()) . '</textarea>';
         echo '<p><button type="submit" name="chess_wager_save" class="button button-primary" value="1">Save URLs</button></p>';
         echo '</form>';
-        echo '<p>On Vercel set this env var, then redeploy:<br><code>VITE_RELAY_URL=' . esc_html($relay) . '</code></p>';
+        echo '<p>The GitHub / Vercel dApp already uses this plugin on voodootoken.com. Relay URL: <code>' . esc_html($relay) . '</code></p>';
         echo '<table class="widefat striped"><thead><tr>';
         echo '<th>Game</th><th>White</th><th>Black</th><th>Online now</th><th>Updated</th>';
         echo '</tr></thead><tbody>';

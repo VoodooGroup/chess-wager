@@ -19,7 +19,7 @@ Then:
      https://chess.voodootoken.com
      https://chess-wager.vercel.app
    First line = the invite link players should share
-3. On Vercel set VITE_RELAY_URL to the relay URL shown on that same admin page
+3. The Vercel dApp already knows this site is https://voodootoken.com/ — no extra env var needed
 4. Optional: also put [chess_wager] on a WordPress page
 
 The plugin stores each game id, both wallet addresses, and every signed move.
