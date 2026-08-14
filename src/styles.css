@@ -251,6 +251,12 @@ button { cursor: pointer; }
   font-size: 15px;
 }
 .game-row p { margin: 0; }
+[data-join-exp] {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--text);
+}
+[data-join-exp].expired { color: #ff8aa0; }
 .muted { color: var(--muted); font-size: 14px; }
 .err { color: #ff8aa0; font-size: 14px; margin-top: 8px; }
 .ok { color: var(--ok); font-size: 15px; }

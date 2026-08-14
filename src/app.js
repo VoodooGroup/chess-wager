@@ -12,7 +12,7 @@ import {
 import { signTyped, verifyTyped, normalizeState, serializeState, structHashGameState } from './lib/eip712.js';
 import { GameChannel } from './lib/p2p.js';
 import { relayOn, relayReset, relayPost, relayPull, relayRegister, relayPresence, relayGetPresence } from './lib/relay.js';
-import { fmtAmount, parseAmount, fmtClock } from './lib/format.js';
+import { fmtAmount, parseAmount, fmtClock, fmtJoinClock } from './lib/format.js';
 import { pieceImg } from './lib/pieces.js';
 import { nowTs, syncChainTime } from './lib/chainTime.js';
 import { ensureSession, sessionReady, sessionAddress, loadSession } from './lib/session.js';
@@ -1241,6 +1241,11 @@ function startClocks() {
       const left = Math.max(0, (state.game.onchain.disputeDeadline || 0) - Math.floor(Date.now() / 1000));
       wait.textContent = left > 0 ? `Wait ${fmtClock(left)} then tap Collect.` : 'You can collect now.';
     }
+    document.querySelectorAll('[data-join-exp]').forEach((el) => {
+      const left = Math.max(0, Number(el.dataset.joinExp) - nowTs());
+      el.textContent = left > 0 ? fmtJoinClock(left) : 'Closed';
+      el.classList.toggle('expired', left <= 0);
+    });
   }, 250);
 }
 
@@ -1389,7 +1394,7 @@ function sidePanel() {
 
 function createPanel() {
   const tok = TOKENS[state.tokenKey];
-  const open = state.lobby.filter((g) => g.status === 0 && !meIs(g.playerWhite));
+  const open = state.lobby.filter((g) => g.status === 0 && !meIs(g.playerWhite) && Number(g.challengeExpiresAt) > nowTs());
   return `
     <h2>Start a game</h2>
     <p class="lead">Pick a token and a bet, then send the link.</p>
@@ -1422,12 +1427,17 @@ function createPanel() {
   `;
 }
 
+function joinLeft(expiresAt) {
+  return Math.max(0, Number(expiresAt || 0) - nowTs());
+}
+
 function joinRow(g) {
   const tok = tokenByAddress(g.wagerToken);
   const amt = tok ? fmtAmount(g.wagerAmount, tok.decimals) : '?';
+  const left = joinLeft(g.challengeExpiresAt);
   return `
     <div class="game-row">
-      <p><strong>#${g.id}</strong><br><span class="muted">${amt} ${tok?.symbol || ''} · ${g.timeControlSeconds / 60} min</span></p>
+      <p><strong>#${g.id}</strong><br><span class="muted">${amt} ${tok?.symbol || ''} · ${g.timeControlSeconds / 60} min</span><br><span class="muted">Open <span data-join-exp="${g.challengeExpiresAt}">${fmtJoinClock(left)}</span></span></p>
       <button class="btn" data-act="accept" data-id="${g.id}">Join</button>
     </div>
   `;
@@ -1439,9 +1449,11 @@ function waitingPanel() {
   const amt = tok ? fmtAmount(g.onchain.wagerAmount, tok.decimals) : '';
   const invite = inviteUrl(g.id);
   const mine = meIs(g.onchain.playerWhite);
+  const left = joinLeft(g.onchain.challengeExpiresAt);
   return `
     <h2>${mine ? 'Waiting for opponent' : 'Join this game'}</h2>
     <p class="lead">${amt} ${tok?.symbol || ''} each · ${g.onchain.timeControlSeconds / 60} minutes per player</p>
+    <p class="muted">Open to join <strong data-join-exp="${g.onchain.challengeExpiresAt}">${left > 0 ? fmtJoinClock(left) : 'Closed'}</strong></p>
     ${mine ? `
       <div class="step">
         <strong>Send this link to your opponent</strong>
@@ -1453,9 +1465,11 @@ function waitingPanel() {
       </div>
       <button class="btn danger big" data-act="cancel" data-id="${g.id}">Cancel and get my tokens back</button>
       ${relayOn() ? `<p class="muted presence">This invite is saved on the site. They can open the link later.</p>` : ''}
-    ` : `
+    ` : left > 0 ? `
       <p class="lead">You put in the same bet. Then you play as Black.</p>
       <button class="btn big" data-act="accept" data-id="${g.id}">Join this game</button>
+    ` : `
+      <p class="err">This invite is closed. Ask them to start a new game.</p>
     `}
     <button class="btn ghost big" style="margin-top:8px" data-act="leave">Back</button>
   `;
