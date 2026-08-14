@@ -155,6 +155,8 @@ export function mount(root) {
         <button data-act="license" type="button">License</button>
         <span>|</span>
         <a href="${explorerAddr(CHESS_WAGER)}" target="_blank" rel="noopener noreferrer">Contract</a>
+        <span>|</span>
+        <a href="./sitemap.xml" target="_blank" rel="noopener noreferrer">Sitemap</a>
       </div>
       <div id="modal"></div>
       <div id="toast" class="toast hidden"></div>
