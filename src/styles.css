@@ -509,11 +509,11 @@ button { cursor: pointer; }
   font-weight: 400;
 }
 .seo-blurb a {
-  color: #1e40af;
+  color: #111;
   font-weight: 700;
-  text-decoration: underline;
+  text-decoration: none;
 }
-.seo-blurb a:hover { color: #1d4ed8; }
+.seo-blurb a:hover { color: #111; }
 
 .site-foot {
   display: flex;
