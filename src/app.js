@@ -36,6 +36,7 @@ const state = {
   promo: null,
   showInfo: false,
   showLicense: false,
+  showVictory: false,
   err: '',
   busy: false,
   peerOn: false,
@@ -182,6 +183,8 @@ function bind(root) {
       else if (act === 'close-info') { state.showInfo = false; render(); }
       else if (act === 'license') { state.showLicense = !state.showLicense; render(); }
       else if (act === 'close-license') { state.showLicense = false; render(); }
+      else if (act === 'close-victory') { state.showVictory = false; render(); }
+      else if (act === 'show-victory') { state.showVictory = true; render(); }
       else if (act === 'token') { state.tokenKey = btn.dataset.token; render(); }
       else if (act === 'time') { state.timeSec = Number(btn.dataset.sec); render(); }
       else if (act === 'create') await createGame();
@@ -255,6 +258,7 @@ async function refreshLobby() {
         if (live.status === 1 && !state.game.linked && state.account) {
           await bootPlay(live);
         }
+        if (live.status === 3) maybeShowVictory();
       }
     }
     render();
@@ -364,6 +368,10 @@ async function openGame(id) {
   relayRegister({ id, ...g }).catch(() => {});
   render();
   if (g.status === 1 && state.account) await bootPlay(g);
+  if (g.status === 3) {
+    maybeShowVictory();
+    if (state.showVictory) render();
+  }
 }
 
 function leaveGame() {
@@ -376,6 +384,7 @@ function leaveGame() {
   state.legal = [];
   state.lastMove = null;
   state.peerOn = false;
+  state.showVictory = false;
   history.replaceState({}, '', location.pathname);
   render();
 }
@@ -760,6 +769,22 @@ async function maybePrepareEnd() {
   const end = endFromBoard();
   if (!end.resultType) return;
   state.game.states.pendingEnd = end;
+  maybeShowVictory();
+}
+
+function iWon() {
+  const g = state.game;
+  if (!g || !state.account) return false;
+  if (g.onchain.winner && g.onchain.winner !== ZERO && meIs(g.onchain.winner)) return true;
+  const end = endFromBoard();
+  return !!(end.resultType === 1 && end.winner && meIs(end.winner));
+}
+
+function maybeShowVictory() {
+  if (!iWon() || !state.game || state.game.victoryShown) return;
+  if ((activeChess().history() || []).length === 0) return;
+  state.game.victoryShown = true;
+  state.showVictory = true;
 }
 
 async function signCurrentResult() {
@@ -1141,7 +1166,8 @@ function render() {
   if (main) main.innerHTML = mainHtml();
   const modal = $('#modal');
   if (modal) {
-    modal.innerHTML = (state.showInfo ? infoHtml() : '')
+    modal.innerHTML = (state.showVictory ? victoryHtml() : '')
+      + (state.showInfo ? infoHtml() : '')
       + (state.showLicense ? licenseHtml() : '')
       + (state.promo ? promoHtml() : '');
   }
@@ -1410,6 +1436,7 @@ function finishedPanel() {
   return `
     <h2>Game over</h2>
     <p class="lead">${line}</p>
+    ${iWon() ? `<button class="btn big" data-act="show-victory">Show victory</button>` : ''}
     <button class="btn big" data-act="leave">Play again</button>
   `;
 }
@@ -1501,6 +1528,40 @@ function promoHtml() {
       `<button class="btn secondary" data-act="promo" data-p="${p}">${pieceImg(code)}</button>`
     ).join('')}</div>
   </div></div>`;
+}
+
+function victoryHtml() {
+  const hist = activeChess().history({ verbose: true }) || [];
+  const color = myColor();
+  const mySans = [];
+  const rows = [];
+  for (let i = 0; i < hist.length; i += 2) {
+    const n = Math.floor(i / 2) + 1;
+    const w = hist[i];
+    const b = hist[i + 1];
+    if (color === 'w' && w) mySans.push(w.san);
+    if (color === 'b' && b) mySans.push(b.san);
+    rows.push(`
+      <div class="v-row">
+        <span class="v-n">${n}.</span>
+        <span class="v-m ${color === 'w' ? 'mine' : ''}">${w ? w.san : ''}</span>
+        <span class="v-m ${color === 'b' ? 'mine' : ''}">${b ? b.san : ''}</span>
+      </div>`);
+  }
+  return `
+    <div class="overlay" data-act="close-victory">
+      <div class="sheet victory-sheet" onclick="event.stopPropagation()">
+        <p class="victory-word">Victory</p>
+        <p class="lead">The steps that won the game</p>
+        <ol class="victory-steps">
+          ${mySans.map((san) => `<li>${san}</li>`).join('') || '<li>No moves recorded.</li>'}
+        </ol>
+        <h3>Full game</h3>
+        <div class="victory-score">${rows.join('')}</div>
+        <div class="close-row"><button class="btn big" data-act="close-victory">Close</button></div>
+      </div>
+    </div>
+  `;
 }
 
 function licenseHtml() {

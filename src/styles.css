@@ -328,5 +328,55 @@ button { cursor: pointer; }
 .license-tab:hover { color: #8b909a; }
 .license-sheet .muted { display: block; margin: 0 0 12px; line-height: 1.45; }
 
+.victory-sheet {
+  width: min(420px, 100%);
+  max-height: min(86vh, 720px);
+  overflow: auto;
+  text-align: center;
+}
+.victory-word {
+  margin: 4px 0 2px;
+  font-family: Cinzel, serif;
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.victory-sheet .lead { margin-bottom: 12px; }
+.victory-steps {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  text-align: left;
+}
+.victory-steps li {
+  margin: 0;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--line);
+  font-size: 16px;
+  font-weight: 650;
+}
+.victory-steps li:last-child { border-bottom: 0; color: var(--gold); }
+.victory-sheet h3 {
+  margin: 8px 0 8px;
+  font-size: 14px;
+  color: var(--gold);
+  text-align: left;
+}
+.victory-score {
+  text-align: left;
+  background: #101216;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  max-height: 180px;
+  overflow: auto;
+  margin-bottom: 4px;
+}
+.v-row { display: grid; grid-template-columns: 2.4em 1fr 1fr; gap: 6px; font-size: 15px; padding: 2px 0; }
+.v-n { color: var(--muted); }
+.v-m.mine { color: var(--gold); font-weight: 700; }
+
 .hidden { display: none !important; }
 .practice { display: none; }
