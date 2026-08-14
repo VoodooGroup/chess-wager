@@ -361,7 +361,27 @@ button { cursor: pointer; }
   width: min(520px, 100%);
   max-height: min(86vh, 720px);
   overflow-x: hidden;
-  overflow-y: scroll;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #4a4f58 transparent;
+}
+.info-sheet::-webkit-scrollbar {
+  width: 8px;
+}
+.info-sheet::-webkit-scrollbar-track {
+  background: transparent;
+}
+.info-sheet::-webkit-scrollbar-thumb {
+  background: #3a3f48;
+  border-radius: 999px;
+}
+.info-sheet::-webkit-scrollbar-thumb:hover {
+  background: #555b66;
+}
+.info-sheet::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
 }
 .info-sheet h3 {
   margin: 16px 0 6px;

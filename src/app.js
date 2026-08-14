@@ -1686,7 +1686,7 @@ function licenseHtml() {
 function infoHtml() {
   return `
     <div class="overlay" data-act="close-info">
-      <div class="sheet info-sheet windows-scrollbar" onclick="if (!event.target.closest('[data-act]')) event.stopPropagation()">
+      <div class="sheet info-sheet" onclick="if (!event.target.closest('[data-act]')) event.stopPropagation()">
         <h2>Chess Wager</h2>
         <p class="lead">A blockchain-powered chess mini-game on PulseChain where you can challenge friends using MAGIC Reward Tokens or POISON Reward Tokens in the prize pot. Play White vs. Black in traditional over-the-board style chess under standard FIDE rules. No bullet bughouse, no Chess960, and no daily correspondence. Just classic rated-style chess with tokens at stake.</p>
 
