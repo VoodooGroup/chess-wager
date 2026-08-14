@@ -162,7 +162,7 @@ export function mount(root) {
       <div id="toast" class="toast hidden"></div>
       <section class="seo-blurb" aria-label="About Chess Wager">
         <h2>Play Chess Online on PulseChain</h2>
-        <p>Chess Wager is an online PulseChain chess game. Challenge friends in classic White vs Black chess under standard FIDE rules and compete with <strong>MAGIC</strong> or <strong>POISON</strong> Reward Tokens in the prize pot.</p>
+        <p>Chess Wager is an online PulseChain chess game. Challenge friends in classic White vs Black chess under standard FIDE rules and compete with <a href="https://voodootoken.com/magic-reward-token" target="_blank" rel="noopener noreferrer">MAGIC</a> or <a href="https://voodootoken.com/poison-reward-token/" target="_blank" rel="noopener noreferrer">POISON</a> Reward Tokens in the prize pot.</p>
       </section>
       <footer class="site-foot">
         <p class="copy">© 2023-2026 VoodooGroup – All Rights Reserved</p>

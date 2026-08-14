@@ -508,7 +508,12 @@ button { cursor: pointer; }
   color: #374151;
   font-weight: 400;
 }
-.seo-blurb strong { color: #111; }
+.seo-blurb a {
+  color: #1e40af;
+  font-weight: 700;
+  text-decoration: underline;
+}
+.seo-blurb a:hover { color: #1d4ed8; }
 
 .site-foot {
   display: flex;
