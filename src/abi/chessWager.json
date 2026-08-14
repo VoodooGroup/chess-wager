@@ -156,6 +156,11 @@
     "inputs": []
   },
   {
+    "name": "ZeroReceived",
+    "type": "error",
+    "inputs": []
+  },
+  {
     "name": "DisputeChallenged",
     "type": "event",
     "inputs": [
@@ -237,7 +242,7 @@
     "anonymous": false
   },
   {
-    "name": "FeeBurned",
+    "name": "FeeCollected",
     "type": "event",
     "inputs": [
       {
@@ -251,6 +256,31 @@
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
+      },
+      {
+        "name": "recipient",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "FeeRecipientUpdated",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "oldRecipient",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newRecipient",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       }
     ],
     "anonymous": false
@@ -270,6 +300,12 @@
         "type": "address",
         "indexed": true,
         "internalType": "address"
+      },
+      {
+        "name": "actualReceived",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       },
       {
         "name": "startedAt",
@@ -316,7 +352,13 @@
         "internalType": "address"
       },
       {
-        "name": "amount",
+        "name": "intendedAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "actualReceived",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -1165,6 +1207,19 @@
     "stateMutability": "nonpayable"
   },
   {
+    "name": "feeRecipient",
+    "type": "function",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
     "name": "finalizeDispute",
     "type": "function",
     "inputs": [
@@ -1204,7 +1259,17 @@
         "internalType": "address"
       },
       {
-        "name": "wagerAmount",
+        "name": "intendedWager",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "whiteDeposited",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "blackDeposited",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -1317,7 +1382,17 @@
             "internalType": "address"
           },
           {
-            "name": "wagerAmount",
+            "name": "intendedWager",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "whiteDeposited",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "blackDeposited",
             "type": "uint256",
             "internalType": "uint256"
           },
@@ -1583,6 +1658,19 @@
     "stateMutability": "view"
   },
   {
+    "name": "setFeeRecipient",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "newRecipient",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
     "name": "settleGame",
     "type": "function",
     "inputs": [
@@ -1638,7 +1726,7 @@
     "stateMutability": "nonpayable"
   },
   {
-    "name": "totalFeesBurned",
+    "name": "totalFeesCollected",
     "type": "function",
     "inputs": [
       {

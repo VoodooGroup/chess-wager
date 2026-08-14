@@ -28,7 +28,7 @@ export const CHAIN = {
   nativeCurrency: { name: 'Pulse', symbol: 'PLS', decimals: 18 }
 };
 
-export const CHESS_WAGER = '0xD328573B46F6a8D3a5920aC85654e945639A645E';
+export const CHESS_WAGER = '0x421C9A85eCBe63d2114Bc8dAaEC236cbb76Cd41B';
 export const CHESS_LIB = '0xfFDc6Fb47DA0A0C28db802Fa07568d5862314d18';
 
 export const TOKENS = {
@@ -48,7 +48,7 @@ export const TOKENS = {
 
 export const EIP712_DOMAIN = {
   name: 'ChessWagerPulse',
-  version: '5',
+  version: '6',
   chainId: CHAIN.id,
   verifyingContract: CHESS_WAGER
 };

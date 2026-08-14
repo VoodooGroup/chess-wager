@@ -274,7 +274,11 @@ function plainGame(g) {
     playerWhite: g.playerWhite,
     playerBlack: g.playerBlack,
     wagerToken: g.wagerToken,
-    wagerAmount: g.wagerAmount,
+    intendedWager: g.intendedWager,
+    whiteDeposited: g.whiteDeposited,
+    blackDeposited: g.blackDeposited,
+    totalPot: g.totalPot,
+    wagerAmount: g.intendedWager,
     createdAt: Number(g.createdAt),
     startedAt: Number(g.startedAt),
     challengeExpiresAt: Number(g.challengeExpiresAt),
@@ -328,9 +332,10 @@ async function acceptGame(id) {
   state.busy = true; render();
   const erc = tokenContract(tok.address, state.signer);
   const allow = await erc.allowance(state.account, CHESS_WAGER);
-  if (allow < g.wagerAmount) {
+  const joinAmt = g.intendedWager ?? g.wagerAmount;
+  if (allow < joinAmt) {
     toast('Your wallet will ask: allow this game to use your tokens.');
-    await (await erc.approve(CHESS_WAGER, g.wagerAmount)).wait();
+    await (await erc.approve(CHESS_WAGER, joinAmt)).wait();
   }
   toast('Confirm in your wallet to join.');
   await (await wagerWrite(state.signer).acceptGame(id)).wait();
@@ -1602,7 +1607,7 @@ function infoHtml() {
 
         <h3>How you get paid</h3>
         <ul>
-          <li>Winner takes the pot <strong>minus 5%</strong>. That 5% is burned by the contract.</li>
+          <li>Winner takes the pot <strong>minus 5%</strong>. That 5% goes to the fee address (not the zero address).</li>
           <li>Normal end: both tap <strong>Confirm the result</strong>, then <strong>Collect</strong>.</li>
           <li>Draw: one taps <strong>Offer draw</strong>, the other taps <strong>Accept draw</strong>, then Collect. Both bets come back. No 5%.</li>
           <li><strong>I give up</strong> pays the other player (minus 5%).</li>

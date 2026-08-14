@@ -3,7 +3,7 @@
 Play chess for MAGIC or POISON. Connect a wallet, start a game, send the link, play, collect.
 
 - ChessLib `0xfFDc6Fb47DA0A0C28db802Fa07568d5862314d18`
-- ChessWager `0xD328573B46F6a8D3a5920aC85654e945639A645E`
+- ChessWager `0x421C9A85eCBe63d2114Bc8dAaEC236cbb76Cd41B`
 
 Pieces: [JohnPablok Cburnett chess set](https://github.com/lichess-org/lila/tree/master/public/piece/cburnett) (CC BY-SA).
 
