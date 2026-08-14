@@ -62,4 +62,61 @@ class Chess_Wager_DB {
         ) {$charset};");
         update_option('chess_wager_db_ver', CHESS_WAGER_DB_VER);
     }
+
+    public static function schedule() {
+        if (!wp_next_scheduled('chess_wager_cleanup')) {
+            wp_schedule_event(time() + 300, 'hourly', 'chess_wager_cleanup');
+        }
+    }
+
+    public static function unschedule() {
+        $ts = wp_next_scheduled('chess_wager_cleanup');
+        if ($ts) {
+            wp_unschedule_event($ts, 'chess_wager_cleanup');
+        }
+    }
+
+    public static function cleanup() {
+        global $wpdb;
+        $hours = Chess_Wager_Settings::keep_hours();
+        $cutoff = date('Y-m-d H:i:s', strtotime(current_time('mysql')) - ($hours * HOUR_IN_SECONDS));
+        $games = self::games_table();
+        $events = self::events_table();
+        $presence = self::presence_table();
+
+        $old_ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT game_id FROM {$games} WHERE updated_at < %s",
+            $cutoff
+        ));
+        $deleted_games = 0;
+        if ($old_ids) {
+            $in = implode(',', array_map('absint', $old_ids));
+            $wpdb->query("DELETE FROM {$events} WHERE game_id IN ({$in})");
+            $wpdb->query("DELETE FROM {$presence} WHERE game_id IN ({$in})");
+            $deleted_games = (int) $wpdb->query("DELETE FROM {$games} WHERE game_id IN ({$in})");
+        }
+
+        $deleted_events = (int) $wpdb->query($wpdb->prepare(
+            "DELETE FROM {$events} WHERE created_at < %s",
+            $cutoff
+        ));
+        $presence_cut = date('Y-m-d H:i:s', strtotime(current_time('mysql')) - (2 * HOUR_IN_SECONDS));
+        $deleted_presence = (int) $wpdb->query($wpdb->prepare(
+            "DELETE FROM {$presence} WHERE last_seen < %s",
+            $presence_cut
+        ));
+
+        update_option('chess_wager_last_cleanup', [
+            'at'        => current_time('mysql'),
+            'hours'     => $hours,
+            'games'     => $deleted_games,
+            'events'    => $deleted_events,
+            'presence'  => $deleted_presence,
+        ]);
+        return [
+            'games'    => $deleted_games,
+            'events'   => $deleted_events,
+            'presence' => $deleted_presence,
+        ];
+    }
 }

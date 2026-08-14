@@ -24,6 +24,7 @@ Then:
 
 The plugin stores each game id, both wallet addresses, and every signed move.
 If a player loses internet or refreshes, they reopen the same game link.
+Games with no activity are deleted after 48 hours (you can change this in Chess Wager settings). Tokens stay in the contract.
 
 Do NOT unzip on your PC and upload only some files.
 Do NOT upload only the dApp dist folder — that cannot remember who is playing.

@@ -6,6 +6,7 @@ if (!defined('ABSPATH')) {
 
 class Chess_Wager_Settings {
     const OPTION = 'chess_wager_dapp_urls';
+    const KEEP_OPTION = 'chess_wager_keep_hours';
 
     public static function raw() {
         return (string) get_option(self::OPTION, '');
@@ -13,6 +14,32 @@ class Chess_Wager_Settings {
 
     public static function save($raw) {
         update_option(self::OPTION, sanitize_textarea_field((string) $raw));
+    }
+
+    public static function keep_hours() {
+        $n = (int) get_option(self::KEEP_OPTION, 48);
+        if ($n < 6) {
+            $n = 6;
+        }
+        if ($n > 720) {
+            $n = 720;
+        }
+        return $n;
+    }
+
+    public static function save_keep_hours($n) {
+        update_option(self::KEEP_OPTION, self::keep_hours_from($n));
+    }
+
+    private static function keep_hours_from($n) {
+        $n = (int) $n;
+        if ($n < 6) {
+            $n = 6;
+        }
+        if ($n > 720) {
+            $n = 720;
+        }
+        return $n;
     }
 
     public static function urls() {
