@@ -27,7 +27,7 @@ button { cursor: pointer; }
 .app {
   max-width: 980px;
   margin: 0 auto;
-  padding: 16px 16px 32px;
+  padding: 16px 16px 80px;
 }
 
 .top {
@@ -56,8 +56,23 @@ button { cursor: pointer; }
 .wallet, #wallet-box, .wallet-row {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
+}
+.wallet-extra {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  text-decoration: none;
+}
+.wallet-extra img {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  object-fit: cover;
 }
 .pill {
   display: inline-flex;
@@ -377,6 +392,33 @@ button { cursor: pointer; }
 .v-row { display: grid; grid-template-columns: 2.4em 1fr 1fr; gap: 6px; font-size: 15px; padding: 2px 0; }
 .v-n { color: var(--muted); }
 .v-m.mine { color: var(--gold); font-weight: 700; }
+
+.site-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+  padding: 14px 4px 0;
+  border-top: 1px solid var(--line);
+}
+.site-foot .copy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.site-foot .soc {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.site-foot .soc a {
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+}
+.site-foot .soc a:hover { color: var(--gold); }
 
 .hidden { display: none !important; }
 .practice { display: none; }
