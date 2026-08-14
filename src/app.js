@@ -161,7 +161,7 @@ export function mount(root) {
       <div id="modal"></div>
       <div id="toast" class="toast hidden"></div>
       <section class="seo-blurb" aria-label="About Chess Wager">
-        <h2>Play blockchain chess on PulseChain</h2>
+        <h2>Play A Chess game on PulseChain</h2>
         <p>Chess Wager is an online PulseChain chess game. Challenge friends in classic White vs Black chess under standard FIDE rules and compete with <strong>MAGIC</strong> or <strong>POISON</strong> Reward Tokens in the prize pot.</p>
       </section>
       <footer class="site-foot">
