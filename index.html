@@ -3,8 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chess Wager · PulseChain</title>
+    <title>Play Chess Online, Challenge Friends &amp; Earn MAGIC and POISON Rewards</title>
+    <meta name="description" content="Play Chess Wager on PulseChain, challenge friends and compete in classic chess using MAGIC or POISON Reward Tokens in the prize pot" />
     <link rel="icon" type="image/webp" href="./favicon.webp" />
+    <link rel="image_src" href="./chess-meta.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Chess Wager" />
+    <meta property="og:title" content="Play Chess Online, Challenge Friends &amp; Earn MAGIC and POISON Rewards" />
+    <meta property="og:description" content="Play Chess Wager on PulseChain, challenge friends and compete in classic chess using MAGIC or POISON Reward Tokens in the prize pot" />
+    <meta property="og:image" content="./chess-meta.png" />
+    <meta property="og:image:alt" content="Play Chess Online, Challenge Friends &amp; Earn MAGIC and POISON Rewards" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Play Chess Online, Challenge Friends &amp; Earn MAGIC and POISON Rewards" />
+    <meta name="twitter:description" content="Play Chess Wager on PulseChain, challenge friends and compete in classic chess using MAGIC or POISON Reward Tokens in the prize pot" />
+    <meta name="twitter:image" content="./chess-meta.png" />
+    <script>
+      (function () {
+        var abs = new URL('chess-meta.png', location.href).href;
+        document.querySelectorAll('meta[property="og:image"], meta[name="twitter:image"], link[rel="image_src"]').forEach(function (el) {
+          if (el.hasAttribute('content')) el.setAttribute('content', abs);
+          else el.setAttribute('href', abs);
+        });
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
