@@ -1270,7 +1270,7 @@ function walletHtml() {
       <button class="info-btn" data-act="info" title="How it works" aria-label="How it works">i</button>
       <div class="wallet-actions">
         <button type="button" class="wallet-btn wallet-btn-voodoo${voodooOn ? ' is-connected' : ''}" data-act="connect-voodoo"${state.account && !voodooOn ? ' disabled' : ''}>
-          <img src="./voodoo-wallet.png" alt="" /> ${voodooOn ? shortAddr(state.account) : 'Voodoo Wallet'}
+          ${voodooOn ? shortAddr(state.account) : 'Voodoo Wallet'}
         </button>
         <button type="button" class="wallet-btn wallet-btn-other${otherOn ? ' is-connected' : ''}" data-act="connect-other"${state.account && !otherOn ? ' disabled' : ''}>
           ${otherOn ? shortAddr(state.account) : 'Other'}
@@ -1391,7 +1391,7 @@ function createPanel() {
         `).join('')}
       </div>
     </div>
-    <button class="btn big" data-act="create"> ${state.busy ? 'disabled' : ''}>${state.busy ? 'Please wait…' : `Start game with ${tok.symbol}`}</button>
+    <button class="btn big" data-act="create"${state.busy ? ' disabled' : ''}>${state.busy ? 'Please wait…' : `Start game with ${tok.symbol}`}</button>
     <h2 style="margin-top:22px">Or join a game</h2>
     <div class="game-list">
       ${open.length === 0 ? `<p class="muted">No open games right now.</p>` : open.map(joinRow).join('')}
